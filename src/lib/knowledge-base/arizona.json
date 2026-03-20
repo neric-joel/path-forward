@@ -1,0 +1,137 @@
+{
+  "state": "Arizona",
+  "last_updated": "2026-03-19",
+  "programs": [
+    {
+      "id": "az_tuition_waiver",
+      "name": "Arizona Tuition Waiver (Foster Youth Award)",
+      "type": "tuition_waiver",
+      "what_it_covers": "Remaining tuition and mandatory fees after all other grants/scholarships applied",
+      "max_amount": "Full remaining tuition",
+      "eligibility": {
+        "foster_care_age": 14,
+        "max_age": 23,
+        "first_disbursement_before": 23,
+        "assets_under": 10000,
+        "requires_fafsa": true,
+        "requires_enrollment": true,
+        "institution_type": "Arizona public college or university",
+        "citizenship_required": true,
+        "volunteer_hours": 30,
+        "min_gpa_renewal": "satisfactory academic progress"
+      },
+      "application": {
+        "portal": "Foster Success Education Services",
+        "url": "https://fseducation.fostersuccess.org/arizona-etv/",
+        "deadline": "Rolling — apply as soon as eligible",
+        "fafsa_deadline": "January 1 recommended, March 1 latest"
+      },
+      "source": {
+        "statute": "ARS 15-1809.01",
+        "url": "https://www.azleg.gov/ars/15/01809-01.htm"
+      },
+      "notes": "Applied AFTER all other grants/scholarships. ETV is the only grant NOT counted against it."
+    },
+    {
+      "id": "az_etv",
+      "name": "Arizona Education and Training Voucher (ETV)",
+      "type": "grant",
+      "what_it_covers": "Tuition, housing, books, student loan repayments, qualified living expenses",
+      "max_amount_per_year": 5000,
+      "max_amount_per_semester": 2500,
+      "max_semesters": 10,
+      "eligibility": {
+        "foster_care_age": 16,
+        "enroll_before_age": 21,
+        "support_until_age": 26,
+        "assets_under": 10000,
+        "requires_enrollment": true,
+        "min_gpa": 2.0,
+        "requires_transcript": true
+      },
+      "application": {
+        "portal": "Foster Success Education Services",
+        "url": "https://fseducation.fostersuccess.org/arizona-etv/",
+        "deadline_2025_2026": "July 31, 2026",
+        "rolling": true
+      },
+      "source": {
+        "url": "https://fseducation.fostersuccess.org/arizona-etv/"
+      },
+      "notes": "First-come first-served. Not counted against the tuition waiver."
+    },
+    {
+      "id": "federal_pell",
+      "name": "Federal Pell Grant",
+      "type": "grant",
+      "what_it_covers": "Tuition, fees, room and board, books, supplies, transportation",
+      "max_amount_per_year": 7395,
+      "eligibility": {
+        "requires_fafsa": true,
+        "foster_youth_advantage": "Automatically classified as independent student — no parental info required",
+        "answer_yes_if": "You were in foster care, a group home, or kinship placement any time after age 13"
+      },
+      "application": {
+        "url": "https://studentaid.gov/h/apply-for-aid/fafsa",
+        "opens": "October 1 each year",
+        "recommended_deadline": "January 1",
+        "asu_school_code": "001081"
+      },
+      "source": {
+        "url": "https://studentaid.gov/understand-aid/types/grants/pell"
+      }
+    },
+    {
+      "id": "bridging_success",
+      "name": "Bridging Success Program (Maricopa Community Colleges)",
+      "type": "support_program",
+      "what_it_covers": "Campus champions, tutoring, mentoring, basic needs, career exploration",
+      "cost": "Free",
+      "application": {
+        "url": "https://www.maricopa.edu/students/student-support/foster-youth"
+      }
+    },
+    {
+      "id": "asu_foster_youth",
+      "name": "ASU Foster Youth Programs",
+      "type": "support_program",
+      "what_it_covers": "Dedicated support office, tuition waiver + ETV + campus resources",
+      "application": {
+        "url": "https://fosteryouth.asu.edu/",
+        "office": "UCENT 240"
+      }
+    },
+    {
+      "id": "az_medicaid_extension",
+      "name": "Arizona Medicaid (AHCCCS) — Former Foster Youth",
+      "type": "healthcare",
+      "what_it_covers": "Health insurance until age 26 regardless of income"
+    }
+  ],
+  "documents_needed": {
+    "birth_certificate": {
+      "how_to_get": "Arizona Vital Records. ~$20.",
+      "url": "https://azdhs.gov/vital-records/"
+    },
+    "social_security_card": {
+      "how_to_get": "SSA office, free replacement.",
+      "url": "https://www.ssa.gov/myaccount/replacement-card.html"
+    },
+    "high_school_diploma_or_ged": {
+      "how_to_get": "Arizona GED Testing Service",
+      "url": "https://ged.com/"
+    },
+    "school_transcripts": {
+      "how_to_get": "Contact last school attended.",
+      "note": "Gaps from school changes are expected — not a barrier."
+    },
+    "proof_of_foster_care": {
+      "how_to_get": "DCS, former caseworker, or court records.",
+      "note": "Often the hardest to get. ETV portal may help verify."
+    },
+    "state_id": {
+      "how_to_get": "Arizona MVD. Bring birth cert + SSN + AZ address proof.",
+      "url": "https://azmvdnow.gov/"
+    }
+  }
+}
