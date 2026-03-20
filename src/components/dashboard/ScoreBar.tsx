@@ -10,11 +10,14 @@ interface ScoreBarProps {
 export function ScoreBar({ label, score, summary, previousScore }: ScoreBarProps) {
   const [width, setWidth] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
+  const hasInitialized = useRef(false);
 
+  // Initial entrance animation via IntersectionObserver (runs once)
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        if (entry.isIntersecting && !hasInitialized.current) {
+          hasInitialized.current = true;
           setWidth(score);
           observer.disconnect();
         }
@@ -23,6 +26,12 @@ export function ScoreBar({ label, score, summary, previousScore }: ScoreBarProps
     );
     if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
+  }, []); // runs once on mount
+
+  // After initial animation, update bar width directly when score changes
+  useEffect(() => {
+    if (!hasInitialized.current) return;
+    setWidth(score);
   }, [score]);
 
   const barColor =
@@ -47,7 +56,7 @@ export function ScoreBar({ label, score, summary, previousScore }: ScoreBarProps
       </div>
       <div className="h-2.5 bg-[#E2DED6] rounded-full overflow-hidden">
         <div
-          className="h-full rounded-full transition-all duration-1000 ease-out"
+          className="h-full rounded-full transition-all duration-700 ease-out"
           style={{ width: `${width}%`, backgroundColor: barColor }}
         />
       </div>

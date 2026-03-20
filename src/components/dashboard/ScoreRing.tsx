@@ -18,36 +18,68 @@ export function ScoreRing({
   const [displayed, setDisplayed] = useState(0);
   const [animated, setAnimated] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const hasInitialized = useRef(false);
+  const rafRef = useRef<number>(0);
 
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (animated ? score / 100 : 0) * circumference;
 
-  // Count-up + ring fill on first render
+  // Initial entrance animation via IntersectionObserver (runs once)
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        if (entry.isIntersecting && !hasInitialized.current) {
+          hasInitialized.current = true;
           setAnimated(true);
           observer.disconnect();
-          // Count-up animation
+          // Count-up from 0 to initial score
+          const target = score;
           let start = 0;
           const duration = 1200;
-          const step = (timestamp: number) => {
+          const tick = (timestamp: number) => {
             if (!start) start = timestamp;
             const progress = Math.min((timestamp - start) / duration, 1);
-            const eased = 1 - Math.pow(1 - progress, 3); // ease-out-cubic
-            setDisplayed(Math.round(eased * score));
-            if (progress < 1) requestAnimationFrame(step);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setDisplayed(Math.round(eased * target));
+            if (progress < 1) {
+              rafRef.current = requestAnimationFrame(tick);
+            }
           };
-          requestAnimationFrame(step);
+          rafRef.current = requestAnimationFrame(tick);
         }
       },
       { threshold: 0.3 }
     );
     if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [score]);
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(rafRef.current);
+    };
+  }, []); // runs once on mount
+
+  // After initial animation, update displayed directly when score changes
+  useEffect(() => {
+    if (!hasInitialized.current) return;
+    // Short count-up from current displayed to new score
+    const from = displayed;
+    const to = score;
+    if (from === to) return;
+    let start = 0;
+    const duration = 600;
+    cancelAnimationFrame(rafRef.current);
+    const tick = (timestamp: number) => {
+      if (!start) start = timestamp;
+      const progress = Math.min((timestamp - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplayed(Math.round(from + (to - from) * eased));
+      if (progress < 1) {
+        rafRef.current = requestAnimationFrame(tick);
+      }
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [score]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const scoreColor =
     score >= 75 ? '#3B6D11' :
@@ -58,22 +90,19 @@ export function ScoreRing({
     <div ref={ref} className="flex flex-col items-center gap-2">
       <div className="relative" style={{ width: size, height: size }}>
         <svg width={size} height={size} className="-rotate-90">
-          {/* Track */}
           <circle
             cx={size / 2} cy={size / 2} r={radius}
             fill="none" stroke="#E2DED6" strokeWidth={strokeWidth}
           />
-          {/* Progress */}
           <circle
             cx={size / 2} cy={size / 2} r={radius}
             fill="none" stroke={color} strokeWidth={strokeWidth}
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={offset}
-            style={{ transition: 'stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1)' }}
+            style={{ transition: 'stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1)' }}
           />
         </svg>
-        {/* Score number */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span className="text-2xl font-bold leading-none" style={{ color: scoreColor }}>
             {displayed}
