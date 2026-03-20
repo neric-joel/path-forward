@@ -61,25 +61,10 @@ export function ScoreRing({
   // After initial animation, update displayed directly when score changes
   useEffect(() => {
     if (!hasInitialized.current) return;
-    // Short count-up from current displayed to new score
-    const from = displayed;
-    const to = score;
-    if (from === to) return;
-    let start = 0;
-    const duration = 600;
     cancelAnimationFrame(rafRef.current);
-    const tick = (timestamp: number) => {
-      if (!start) start = timestamp;
-      const progress = Math.min((timestamp - start) / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplayed(Math.round(from + (to - from) * eased));
-      if (progress < 1) {
-        rafRef.current = requestAnimationFrame(tick);
-      }
-    };
-    rafRef.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafRef.current);
-  }, [score]); // eslint-disable-line react-hooks/exhaustive-deps
+    setDisplayed(score);
+    setAnimated(true);
+  }, [score]);
 
   const scoreColor =
     score >= 75 ? '#3B6D11' :
