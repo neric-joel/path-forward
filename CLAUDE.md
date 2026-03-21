@@ -70,19 +70,19 @@ floating nav pill, single amber CTA button — like the "Where Creativity Meets 
 ```
 User → Intake Form (5 fields)
          ↓
-     Claude API (system prompt + AZ knowledge base)
+     Claude API (V2 system prompt + AZ knowledge base + AZ schools DB)
          ↓
-     Structured JSON Response
+     Structured JSON Response (V2 schema)
          ↓
-     ┌─────────────┬──────────────┬────────────────┐
-     │ Readiness   │ Financial    │ Sequenced      │
-     │ Snapshot    │ Aid Matches  │ Action Plan    │
-     │ (4 scores)  │ (with sources)│ (with deltas) │
-     └─────────────┴──────────────┴────────────────┘
-         ↓                              ↓
-     Interactive Dashboard          PDF Export
-         ↓
-     Step Completion → Instant Score Updates (pre-calculated deltas)
+     ┌─────────────┬──────────────┬────────────────┬────────────────┬──────────────────┐
+     │ Readiness   │ Financial    │ School         │ Sequenced      │ Semester         │
+     │ Snapshot    │ Aid Matches  │ Matches        │ Action Plan    │ Roadmap          │
+     │ (4 scores)  │ (w/ sources) │ (w/ cost $$)   │ (with deltas)  │ (phased tasks)   │
+     └─────────────┴──────────────┴────────────────┴────────────────┴──────────────────┘
+         ↓                              ↓                                ↓
+     Interactive Dashboard          PDF Export                    Step Completion
+         ↓                                                        → Instant Score Updates
+     Score Completion → Instant Score Updates (pre-calculated deltas)
 ```
 
 **Stack:**
@@ -117,12 +117,15 @@ vazhi/
 │   │   │   │   └── BenefitsField.tsx
 │   │   │   └── IntakeReview.tsx
 │   │   ├── dashboard/
-│   │   │   ├── DashboardView.tsx
+│   │   │   ├── DashboardView.tsx       # Main dashboard layout (V2 render order)
 │   │   │   ├── ReadinessSnapshot.tsx
 │   │   │   ├── ScoreRing.tsx
 │   │   │   ├── ScoreBar.tsx
 │   │   │   ├── FinancialAidCards.tsx
 │   │   │   ├── AidCard.tsx
+│   │   │   ├── SchoolMatchCard.tsx     # V2: Individual school card with cost breakdown
+│   │   │   ├── SchoolMatches.tsx       # V2: School matches list with fit labels
+│   │   │   ├── SemesterRoadmap.tsx     # V2: Phased semester timeline view
 │   │   │   ├── ActionPlan.tsx
 │   │   │   └── ActionStep.tsx
 │   │   └── shared/
@@ -131,12 +134,13 @@ vazhi/
 │   │       └── SourceCitation.tsx
 │   ├── lib/
 │   │   ├── claude.ts                   # Claude API wrapper
-│   │   ├── prompt.ts                   # System prompt + schema
+│   │   ├── prompt.ts                   # V2 system prompt (8 safeguards + school matching)
 │   │   ├── score-engine.ts             # Client-side delta application
 │   │   ├── pdf-export.ts               # PDF generation
-│   │   ├── types.ts                    # TypeScript interfaces
+│   │   ├── types.ts                    # TypeScript interfaces (V2 expanded)
 │   │   └── knowledge-base/
-│   │       └── arizona.json
+│   │       ├── arizona.json            # Programs + documents DB
+│   │       └── arizona-schools.json    # V2: Arizona school profiles for matching
 │   ├── pages/
 │   │   ├── Home.tsx                    # Landing page (cinematic hero)
 │   │   ├── Intake.tsx
@@ -276,85 +280,83 @@ Secondary:  #6B6A65
 
 ---
 
-## 5. Claude API System Prompt (prompt.ts)
+## 4b. Arizona Schools Database (arizona-schools.json) — V2
+
+This file contains school profiles used by the V2 system prompt for school matching, cost breakdown, and semester roadmap generation. Each entry includes tuition, fees, foster support programs, housing options, transit access, and available degree paths.
+
+**Schema per school:**
+```json
+{
+  "id": "string",
+  "name": "string",
+  "type": "community_college | university",
+  "location": { "city": "string", "area": "string", "transit_accessible": true },
+  "tuition": { "annual_in_state_ft": 0, "mandatory_fees": 0, "tuition_url": "string" },
+  "foster_support": {
+    "program_name": "string",
+    "has_dedicated_program": true,
+    "has_campus_champion": true,
+    "contact": "string",
+    "program_url": "string",
+    "services": ["string"]
+  },
+  "housing": {
+    "on_campus_available": true,
+    "on_campus_annual": 0,
+    "avg_nearby_rent_monthly": 0
+  },
+  "scholarships": [{ "name": "string", "amount": 0, "foster_specific": true }],
+  "online_options": true,
+  "degree_paths": ["string"]
+}
+```
+
+The V2 system prompt ingests this database at runtime alongside `arizona.json`. Schools are scored using the weighted matching algorithm (financial 40%, support 25%, location 20%, goal 15%) defined in the prompt.
+
+---
+
+## 5. Claude API System Prompt (prompt.ts) — V2
 
 Use `senior-prompt-engineer` skill exclusively for this file.
 
+**V2 prompt is the production prompt defined in `pathforward-implementation-plan.md`.** It includes:
+
+### 8 Ethical Safeguards (override all other rules)
+1. **Protect Against Wrong Eligibility** — confidence = "verify" if ANY condition can't be confirmed from intake data alone
+2. **Protect Against Discouraging Low Scores** — scores below 40 lead with strengths, never use the word "low"
+3. **Protect Against False Cost Certainty** — housing shown as ranges, tuition labeled estimated/confirmed
+4. **Protect Against Overconfident School Rankings** — fit_label ("Strong match" / "Good match" / "Worth exploring") shown instead of raw scores
+5. **Protect Against False Urgency** — deadlines within 14 days include urgency_note pointing to a specific helper, not panic language
+6. **Protect Against Missing Options** — other_options_note always reminds that the tuition waiver applies at ALL AZ public schools
+7. **Protect Privacy on Shared Devices** — housing_situation and income_status never echoed in summaries or key_insight
+8. **Respect "I'd Rather Not Say"** — neutral defaults, no penalty, no inference
+
+### V2 Additions Over V1
+- **School Matching Rules** — weighted fit_score (financial 40%, support 25%, location 20%, goal 15%), returns top 3 with fit_label not raw score
+- **Cost Breakdown Logic** — 12-step calculation: Pell first → tuition waiver covers remainder → ETV covers non-tuition → estimated_out_of_pocket
+- **Semester Roadmap Rules** — phased timeline (pre-enrollment → semester 1 → semester 2 → 3+), each phase with tasks, dependencies, cost estimates, and funding summaries
+- **Action Plan Dependency Rules** — 7 explicit ordering rules (documents first, FAFSA before waiver, etc.)
+- **Score Deltas Rules** — integer deltas per step with unlocks[] array
+- **Language Rules** — "you" not "the applicant", trauma-informed, never "low" for scores
+- **Age-Specific Urgency** — age >= 22 flags the under-23 first-disbursement rule
+
+### V2 Output JSON Schema
+The prompt returns the full V2 schema including `school_matches[]`, `other_options_note`, `semester_roadmap`, and expanded `action_plan` with `urgency_note`, `estimated_time`, and `documents_needed[].how_to_get`.
+
 ```
-You are Vazhi, an AI college readiness assessment engine for foster
-youth aging out of the system in Arizona.
-
-Return ONLY valid JSON — no prose, no markdown fences, no explanation.
-
-CORE PRINCIPLES:
-- You are a navigation tool, not a counselor.
-- Every eligibility determination must include confidence level + source URL.
-- Never shame. Say "here's where things stand."
-- Surface financial aid BEFORE academic requirements.
-- When a deadline has passed, show the next available cycle.
-
 ARIZONA PROGRAM DATABASE:
 [Insert full arizona.json contents here at runtime]
 
-SCORING RULES:
-academic_readiness (0-100):
-  Has diploma/GED: +40 | Has transcripts: +20
-  Clear education goal: +20 | Specific institution type: +20
-
-financial_aid_eligibility (0-100):
-  Base: 20 | Each eligible program not yet applied for: +20 (max 100)
-
-application_completeness (0-100):
-  Points distributed evenly across needed docs + applied benefits
-
-timeline_feasibility (0-100):
-  still_in_care: 90 | just_aged_out: 75 | 3_12_months: 55 | over_a_year: 40
-  Bonus per reachable deadline: +10 (max +30)
-  Penalty if critical deadline within 14 days: -15
-
-DEPENDENCY RULES (action sequencing):
-1. Documents that unlock other steps go first
-2. FAFSA before tuition waiver
-3. Proof of foster care before ETV
-4. Enrollment before ETV disbursement
-5. Earlier deadlines first
-6. Free/quick steps first
-
-SCORE DELTAS: For each step, return what scores change if completed.
-Keys must be integers (1, 2, 3...) not strings.
-
-OUTPUT JSON SCHEMA:
-{
-  "readiness": {
-    "overall": number,
-    "academic": { "score": number, "summary": string },
-    "financial_aid": { "score": number, "summary": string },
-    "application": { "score": number, "summary": string },
-    "timeline": { "score": number, "summary": string },
-    "overall_summary": string
-  },
-  "matched_programs": [{ "id", "name", "what_it_covers", "max_amount",
-    "confidence": "eligible"|"likely_eligible"|"verify",
-    "confidence_reason", "deadline", "days_until_deadline",
-    "next_action", "source_url", "verify_with" }],
-  "action_plan": [{ "step_number", "title", "why_this_is_next",
-    "deadline", "days_until_deadline",
-    "documents_needed": [{ "name", "status": "have"|"need", "how_to_get" }],
-    "specific_action", "where_to_go", "what_to_bring",
-    "confidence": "certain"|"high"|"verify",
-    "verify_with", "source_url" }],
-  "score_deltas": {
-    1: { "academic": n, "financial_aid": n, "application": n, "timeline": n, "overall": n, "unlocks": [n] }
-  },
-  "key_insight": string
-}
+ARIZONA SCHOOLS DATABASE:
+[Insert full arizona-schools.json contents here at runtime]
 ```
 
 ---
 
-## 6. TypeScript Interfaces (types.ts)
+## 6. TypeScript Interfaces (types.ts) — V2
 
 ```typescript
+// ─── Intake ───────────────────────────────────────────
 export interface IntakeFormData {
   age: number;
   state: string;
@@ -364,6 +366,7 @@ export interface IntakeFormData {
   benefitsApplied: string[];
 }
 
+// ─── Readiness ────────────────────────────────────────
 export interface ReadinessScore {
   overall: number;
   academic: { score: number; summary: string };
@@ -373,6 +376,7 @@ export interface ReadinessScore {
   overall_summary: string;
 }
 
+// ─── Financial Aid ────────────────────────────────────
 export interface MatchedProgram {
   id: string;
   name: string;
@@ -387,21 +391,97 @@ export interface MatchedProgram {
   verify_with: string;
 }
 
+// ─── School Matching (V2) ─────────────────────────────
+export interface CostBreakdown {
+  annual_tuition: number;
+  pell_grant_applied: number;
+  tuition_after_waiver: number;
+  mandatory_fees: number;
+  books_supplies: number;
+  housing_estimate: number;
+  transportation: number;
+  personal: number;
+  total_cost_of_attendance: number;
+  etv_applied: number;
+  other_scholarships: number;
+  estimated_out_of_pocket: number;
+  cost_note: string;
+}
+
+export interface FosterSupport {
+  program_name: string;
+  has_champion: boolean;
+  contact: string;
+  program_url: string;
+  services: string[];
+}
+
+export interface HousingOptions {
+  on_campus_available: boolean;
+  on_campus_cost: number | null;
+  avg_nearby_rent: number;
+  housing_note: string;
+}
+
+export interface SchoolMatch {
+  id: string;
+  name: string;
+  type: 'community_college' | 'university';
+  fit_score: number;
+  fit_label: 'Strong match' | 'Good match' | 'Worth exploring';
+  fit_reasons: string[];
+  cost_breakdown: CostBreakdown;
+  foster_support: FosterSupport;
+  housing_options: HousingOptions;
+  why_this_school: string;
+  source_urls: string[];
+}
+
+// ─── Semester Roadmap (V2) ────────────────────────────
+export interface RoadmapTask {
+  task: string;
+  why: string;
+  deadline: string | null;
+  depends_on: string[] | null;
+  estimated_time: string;
+  help_from: string;
+  category: 'financial' | 'academic' | 'housing' | 'administrative' | 'support';
+}
+
+export interface RoadmapPhase {
+  name: string;
+  phase_type: 'preparation' | 'active_semester' | 'summer' | 'graduation';
+  tasks: RoadmapTask[];
+  semester_cost_estimate: number | null;
+  funding_applied: string;
+}
+
+export interface SemesterRoadmap {
+  recommended_start: string;
+  total_semesters_to_degree: number;
+  based_on_school: string;
+  phases: RoadmapPhase[];
+}
+
+// ─── Action Plan ──────────────────────────────────────
 export interface ActionStep {
   step_number: number;
   title: string;
   why_this_is_next: string;
   deadline: string | null;
   days_until_deadline: number | null;
-  documents_needed: Array<{ name: string; status: 'have' | 'need'; how_to_get: string }>;
+  urgency_note: string | null;
+  documents_needed: Array<{ name: string; status: 'have' | 'need'; how_to_get?: string }>;
   specific_action: string;
   where_to_go: string;
   what_to_bring: string;
+  estimated_time: string;
   confidence: 'certain' | 'high' | 'verify';
   verify_with: string;
   source_url: string;
 }
 
+// ─── Score Deltas ─────────────────────────────────────
 export interface ScoreDelta {
   academic: number;
   financial_aid: number;
@@ -411,10 +491,14 @@ export interface ScoreDelta {
   unlocks: number[];
 }
 
+// ─── Full Assessment Result (V2) ─────────────────────
 export interface AssessmentResult {
   readiness: ReadinessScore;
   matched_programs: MatchedProgram[];
+  school_matches: SchoolMatch[];
+  other_options_note: string;
   action_plan: ActionStep[];
+  semester_roadmap: SemesterRoadmap;
   score_deltas: Record<number, ScoreDelta>;
   key_insight: string;
 }
@@ -434,6 +518,7 @@ Use `api-integration-specialist` skill for this file.
 // 4. Strip accidental ```json fences before parsing
 // 5. On parse failure → load DEMO_FALLBACK (never crash the demo)
 // 6. Retry with exponential backoff, max 2 retries
+// 7. V2: max_tokens increased to 8000 (school matches + roadmap need more space)
 
 const response = await fetch('https://api.anthropic.com/v1/messages', {
   method: 'POST',
@@ -445,7 +530,7 @@ const response = await fetch('https://api.anthropic.com/v1/messages', {
   },
   body: JSON.stringify({
     model: 'claude-sonnet-4-20250514',
-    max_tokens: 4000,
+    max_tokens: 8000,
     system: SYSTEM_PROMPT,
     messages: [{ role: 'user', content: JSON.stringify(intakeData) }]
   })
@@ -454,51 +539,89 @@ const response = await fetch('https://api.anthropic.com/v1/messages', {
 
 ---
 
-## 8. Build Order
+## 8. DashboardView Render Order — V2
+
+The dashboard renders sections in this order, top to bottom:
+
+```
+1. Key Insight          — single most important message, personalized
+2. Readiness Scores     — ReadinessSnapshot (4 ScoreRings + overall)
+3. Financial Aid        — FinancialAidCards (matched programs with confidence badges)
+4. School Matches       — SchoolMatches → SchoolMatchCard (top 3 with cost breakdowns)
+5. Action Plan          — ActionPlan → ActionStep (sequenced, checkable, with deltas)
+6. Semester Roadmap     — SemesterRoadmap (phased timeline with tasks)
+7. PDF Export           — "Download Your Plan" button
+```
+
+**School Matches section (V2):**
+- `SchoolMatches.tsx` renders the `other_options_note` and maps over `school_matches[]`
+- `SchoolMatchCard.tsx` renders per school: fit_label badge, fit_reasons, cost_breakdown table, foster_support details, housing_options, why_this_school, and source links
+- fit_label shown as colored badge: "Strong match" = teal, "Good match" = amber, "Worth exploring" = secondary
+- Cost breakdown table: tuition → grants → waiver → fees → living → ETV → out of pocket
+
+**Semester Roadmap section (V2):**
+- `SemesterRoadmap.tsx` renders a vertical timeline of phases
+- Each phase shows: name, phase_type icon, tasks list, semester_cost_estimate, funding_applied
+- Tasks show category tag, estimated_time, help_from contact, and dependency chain
+
+---
+
+## 9. Build Order
 
 ### Phase 1 — Foundation
 1. Install Tailwind CSS + shadcn/ui
 2. Add Google Fonts (Playfair Display + DM Sans + DM Serif Display)
 3. Define color palette in tailwind.config.ts
-4. `src/lib/types.ts` — all interfaces
+4. `src/lib/types.ts` — all interfaces (V2 expanded)
 5. `src/lib/knowledge-base/arizona.json`
-6. `src/lib/claude.ts` — use `api-integration-specialist` skill
-7. `src/lib/prompt.ts` — use `senior-prompt-engineer` skill
-**Checkpoint: Claude API returns valid JSON**
+6. `src/lib/knowledge-base/arizona-schools.json` — V2 school profiles
+7. `src/lib/claude.ts` — use `api-integration-specialist` skill
+8. `src/lib/prompt.ts` — use `senior-prompt-engineer` skill (V2 prompt with 8 safeguards)
+**Checkpoint: Claude API returns valid V2 JSON with school_matches + semester_roadmap**
 
 ### Phase 2 — Landing Page
-8. `src/pages/Home.tsx` — cinematic hero
+9. `src/pages/Home.tsx` — cinematic hero
    - Use `frontend-design` + `ui-design-system` skills
    - Full-bleed path background, floating nav, Playfair Display headline, amber CTA
 **Checkpoint: Landing page matches visual reference**
 
 ### Phase 3 — Intake Form
-9. StepIndicator, all 5 field components, IntakeReview
-   - Use `react-best-practices` + `senior-frontend` skills
-10. Wire form → Claude API → loading skeleton
+10. StepIndicator, all 5 field components, IntakeReview
+    - Use `react-best-practices` + `senior-frontend` skills
+11. Wire form → Claude API → loading skeleton
 **Checkpoint: Form submits, skeleton loads**
 
-### Phase 4 — Dashboard
-11. ScoreRing, ScoreBar, ReadinessSnapshot
+### Phase 4 — Dashboard (Core)
+12. ScoreRing, ScoreBar, ReadinessSnapshot
     - Use `senior-architect` for state wiring decisions
-12. ConfidenceBadge, SourceCitation, AidCard, FinancialAidCards
-13. ActionStep, ActionPlan, DashboardView
-14. Wire score deltas on step completion (client-side only)
-**Checkpoint: Full dashboard renders, scores update on check**
+13. ConfidenceBadge, SourceCitation, AidCard, FinancialAidCards
+14. ActionStep, ActionPlan, DashboardView (initial layout)
+15. Wire score deltas on step completion (client-side only)
+**Checkpoint: Core dashboard renders — readiness, aid, action plan, scores update on check**
+
+### Phase 4.5 — School Matches + Semester Roadmap (V2)
+16. `SchoolMatchCard.tsx` — single school card with cost breakdown table, fit_label badge, foster support, housing options
+    - Use `frontend-design` + `ui-ux-pro-max` for cost table layout
+17. `SchoolMatches.tsx` — maps school_matches[], renders other_options_note
+18. `SemesterRoadmap.tsx` — vertical phased timeline with task cards
+    - Use `senior-architect` for phase/task dependency rendering
+19. Wire SchoolMatches + SemesterRoadmap into DashboardView (V2 render order)
+**Checkpoint: Full V2 dashboard renders — all 7 sections visible, school cost breakdowns accurate**
 
 ### Phase 5 — Polish & Export
-15. Score count-up animations + stagger reveal
-16. PDF export — use `pdf-processing-pro` skill
-17. Privacy banner, demo fallback, mobile responsive pass
-18. Run `webapp-testing` skill to verify form → dashboard flow
+20. Score count-up animations + stagger reveal
+21. PDF export — use `pdf-processing-pro` skill (V2: include school matches + roadmap in PDF)
+22. Privacy banner, demo fallback, mobile responsive pass
+23. Run `webapp-testing` skill to verify form → dashboard flow
+**Checkpoint: PDF includes all V2 sections, mobile responsive, demo fallback works**
 
 ### Phase 6 — Deploy
-19. Use `git-commit-helper` for clean commits
-20. Push to GitHub → deploy to Vercel
+24. Use `git-commit-helper` for clean commits
+25. Push to GitHub → deploy to Vercel
 
 ---
 
-## 9. Environment Variables
+## 10. Environment Variables
 
 ```
 VITE_CLAUDE_API_KEY=your_key_here
@@ -506,7 +629,7 @@ VITE_CLAUDE_API_KEY=your_key_here
 
 ---
 
-## 10. Code Review Standards
+## 11. Code Review Standards
 
 After every file, run `code-reviewer` + `react-best-practices`:
 - Functions > 30 lines → extract
@@ -517,11 +640,18 @@ After every file, run `code-reviewer` + `react-best-practices`:
 
 ---
 
-## 11. Ethical Design
+## 12. Ethical Design
 
 - Every eligibility result: confidence + source URL + "verify with" contact
 - Never "you should have" → always "here's where things stand"
 - Financial aid shown BEFORE academic requirements
+- School fit shown as labels ("Strong match"), NEVER raw scores — prevent false precision (Safeguard 4)
+- Cost breakdowns distinguish confirmed vs estimated amounts (Safeguard 3)
+- Housing costs shown as ranges, never single numbers presented as fact (Safeguard 3)
+- Deadlines within 14 days include urgency_note with a specific helper contact (Safeguard 5)
+- other_options_note always present — the 3 shown schools are not the only options (Safeguard 6)
+- Sensitive fields (housing_situation, income_status) never echoed in summaries (Safeguard 7)
+- "I'd rather not say" respected with neutral defaults, no penalty (Safeguard 8)
 - PDF bridges AI → human caseworker, never replaces
 - Privacy banner on every page
 - Trauma-informed language — no shame, no blame
