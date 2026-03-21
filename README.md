@@ -4,7 +4,7 @@
 
 **Live demo:** [vazhii.vercel.app](https://vazhii.vercel.app)
 
-Vazhi is an AI-powered college readiness tool built for foster youth aging out of the Arizona system. Answer 5 quick questions, and Vazhi uses Claude to generate a personalized readiness snapshot, matched funding programs, school recommendations, a sequenced action plan, and a semester-by-semester roadmap — all in your browser. No account. No data stored.
+Vazhi is an AI-powered college readiness tool built for foster youth aging out of the Arizona system. Answer 6 quick questions, and Vazhi uses Claude to generate a personalized readiness snapshot, matched funding programs, school recommendations, a sequenced action plan, and a semester-by-semester roadmap — all in your browser. No account. No data stored.
 
 ---
 
@@ -24,7 +24,7 @@ Vazhi bridges that gap — helping users arrive at their first caseworker meetin
 
 ## How It Works
 
-### Step 1 — 5-Question Intake
+### Step 1 — 6-Step Intake
 
 The intake collects exactly what's needed and nothing more:
 
@@ -70,7 +70,7 @@ The Overview tab fires automatically when you reach the dashboard. While you rea
 Shows a SectionIntro card first ("Show My Funding Details" button). Fires the funding API call on click.
 
 **What it returns:** Full matched programs list, each with:
-- **Confidence badge:** `Eligible` (green) / `Likely Eligible` (amber) / `Verify` (gray)
+- **Confidence badge:** `Confirmed eligible` (green) / `Very likely eligible` (teal) / `Check with your caseworker` (amber)
 - **Confidence reason** — plain-language explanation of why this rating was assigned
 - **Amount** — max annual amount
 - **What it covers** — tuition, housing, books, etc.
@@ -322,7 +322,7 @@ src/
 │   │   ├── ActionStep.tsx          # Individual step card with delta preview
 │   │   └── SemesterRoadmap.tsx     # Phased timeline with per-phase visual identity
 │   └── shared/
-│       ├── ConfidenceBadge.tsx     # Eligible / Likely Eligible / Verify badge
+│       ├── ConfidenceBadge.tsx     # Confirmed eligible / Very likely eligible / Check with caseworker
 │       ├── SourceCitation.tsx      # Source URL + verify with contact
 │       └── LoadingSkeleton.tsx     # Generic skeleton
 ├── lib/
