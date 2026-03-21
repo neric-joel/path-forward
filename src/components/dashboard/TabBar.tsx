@@ -32,7 +32,7 @@ export function TabBar({ activeTab, onTabChange, generated }: TabBarProps) {
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               className={`
-                relative flex items-center gap-1.5 px-3 py-3 text-xs font-semibold
+                relative flex items-center gap-1.5 px-3 py-3 text-[13px] font-semibold
                 whitespace-nowrap transition-colors min-h-[44px] flex-shrink-0
                 ${isActive
                   ? 'text-[#0F6E56] border-b-2 border-[#0F6E56]'
@@ -40,7 +40,7 @@ export function TabBar({ activeTab, onTabChange, generated }: TabBarProps) {
                 }
               `}
             >
-              <span className={`text-[10px] ${isActive ? 'text-[#0F6E56]' : 'text-[#6B6A65]'}`}>
+              <span className={`text-[12px] ${isActive ? 'text-[#0F6E56]' : 'text-[#6B6A65]'}`}>
                 {tab.icon}
               </span>
               {tab.label}

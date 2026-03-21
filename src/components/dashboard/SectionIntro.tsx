@@ -28,17 +28,17 @@ export function SectionIntro({
       <div className="bg-white rounded-2xl border border-[#E2DED6] shadow-sm px-6 py-8 text-center">
         <div className="text-4xl mb-4">{icon}</div>
         <h2
-          className="text-xl font-semibold text-[#1C1C1A] mb-2"
+          className="text-2xl font-semibold text-[#1C1C1A] mb-2"
           style={{ fontFamily: "'DM Serif Display', serif" }}
         >
           {title}
         </h2>
-        <p className="text-sm text-[#6B6A65] mb-6 leading-relaxed max-w-sm mx-auto">
+        <p className="text-[15px] text-[#6B6A65] mb-6 leading-relaxed max-w-sm mx-auto">
           {description}
         </p>
 
         {disabled && disabledReason ? (
-          <div className="bg-[#F5F3EE] rounded-xl px-4 py-3 mb-4 text-xs text-[#6B6A65]">
+          <div className="bg-[#F5F3EE] rounded-xl px-4 py-3 mb-4 text-[13px] text-[#6B6A65]">
             {disabledReason}
           </div>
         ) : (
@@ -47,7 +47,7 @@ export function SectionIntro({
             disabled={isLoading}
             className={`
               w-full max-w-xs mx-auto flex items-center justify-center gap-2
-              py-3.5 rounded-xl font-semibold text-sm transition-all min-h-[48px]
+              py-3.5 rounded-xl font-semibold text-base transition-all min-h-[48px]
               ${isLoading
                 ? 'bg-[#E2DED6] text-[#6B6A65] cursor-not-allowed'
                 : 'bg-[#0F6E56] hover:bg-[#0a4f3e] text-white shadow-md hover:shadow-lg'
@@ -67,7 +67,7 @@ export function SectionIntro({
 
         {isError && (
           <div className="mt-4 px-4 py-3 rounded-xl bg-orange-50 border border-orange-200">
-            <p className="text-xs text-[#D85A30]">
+            <p className="text-[13px] text-[#D85A30]">
               Something went wrong — showing demo data instead.{' '}
               <button
                 onClick={onGenerate}
@@ -80,7 +80,7 @@ export function SectionIntro({
         )}
 
         {note && !isLoading && !disabled && (
-          <p className="mt-4 text-[10px] text-[#6B6A65]/70">{note}</p>
+          <p className="mt-4 text-[13px] text-[#6B6A65]/70">{note}</p>
         )}
       </div>
     </div>

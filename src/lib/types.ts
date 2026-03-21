@@ -186,6 +186,30 @@ export interface RoadmapResult {
   semester_roadmap: SemesterRoadmap;
 }
 
+// ─── Contextual Tab Preferences (Task 6) ─────────────────────────────────────
+
+/** Extra context collected in the Schools tab before generating */
+export interface SchoolPreferences {
+  location?: string;
+  priorities?: string[];
+  transportation?: string;
+}
+
+/** Extra context collected in the Action Plan tab before generating */
+export interface ActionPlanContext {
+  has_caseworker?: string;
+  housing_situation?: string; // never echoed in visible UI — Safeguard 7
+  income_status?: string;     // never echoed in visible UI — Safeguard 7
+}
+
+/** Extra context collected in the Roadmap tab before generating */
+export interface RoadmapPreferences {
+  attendance?: 'full_time' | 'part_time' | 'not_sure';
+  housing_preference?: 'on_campus' | 'off_campus' | 'not_sure';
+}
+
+// ─── Dashboard State ──────────────────────────────────────────────────────────
+
 /** Union of all section states stored in App.tsx */
 export interface DashboardState {
   intakeData: IntakeFormData;

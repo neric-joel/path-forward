@@ -1,4 +1,5 @@
 
+import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type {
   IntakeFormData,
@@ -8,6 +9,7 @@ import type {
   ActionPlanResult,
   RoadmapResult,
 } from '../../lib/types';
+import { exportToPDF } from '../../lib/pdf-export';
 import { TabBar, type TabId } from './TabBar';
 import { OverviewTab } from './OverviewTab';
 import { FinancialAidTab } from './FinancialAidTab';
@@ -47,10 +49,17 @@ export function DashboardView({
   onStartOver,
 }: DashboardViewProps) {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [isExporting, setIsExporting] = useState(false);
   const activeTab = (searchParams.get('tab') as TabId) || 'overview';
 
   const handleTabChange = (tab: TabId) => {
     setSearchParams({ tab });
+  };
+
+  const handleExport = () => {
+    setIsExporting(true);
+    exportToPDF(intakeData, overviewResult, financialResult, schoolResult, actionResult, roadmapResult)
+      .finally(() => setIsExporting(false));
   };
 
   const generated: Partial<Record<TabId, boolean>> = {
@@ -139,12 +148,41 @@ export function DashboardView({
       </main>
 
       {/* Footer */}
-      <div className="max-w-4xl mx-auto px-4 py-8 text-center space-y-1">
-        <p className="text-xs text-[#6B6A65]">
-          This plan is a navigation guide, not legal or financial advice.
-          Always verify eligibility directly with the programs listed.
-        </p>
-        <p className="text-xs text-[#6B6A65]">Built for foster youth in Arizona · Vazhi வழி</p>
+      <div className="max-w-4xl mx-auto px-4 py-8 text-center space-y-4">
+        {overviewResult && (
+          <button
+            onClick={handleExport}
+            disabled={isExporting}
+            className={`inline-flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold text-base
+              transition-all shadow-md min-h-[52px]
+              ${isExporting
+                ? 'bg-[#E2DED6] text-[#6B6A65] cursor-not-allowed'
+                : 'bg-[#BA7517] hover:bg-[#9a6113] text-white hover:shadow-lg'
+              }`}
+          >
+            {isExporting ? (
+              <>
+                <span className="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                Generating PDF…
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Download Your Plan (PDF)
+              </>
+            )}
+          </button>
+        )}
+        <div className="space-y-1">
+          <p className="text-[13px] text-[#6B6A65]">
+            This plan is a navigation guide, not legal or financial advice.
+            Always verify eligibility directly with the programs listed.
+          </p>
+          <p className="text-[13px] text-[#6B6A65]">Built for foster youth in Arizona · Vazhi வழி</p>
+        </div>
       </div>
     </div>
   );

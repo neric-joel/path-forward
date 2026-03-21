@@ -1,5 +1,11 @@
-import type { AssessmentResult } from './types';
-import type { ScoreState } from './score-engine';
+import type {
+  IntakeFormData,
+  OverviewResult,
+  FinancialAidResult,
+  SchoolMatchResult,
+  ActionPlanResult,
+  RoadmapResult,
+} from './types';
 
 // Dynamic import to keep bundle lean
 async function getJsPDF() {
@@ -12,296 +18,644 @@ const AMBER: [number, number, number] = [186, 117, 23];
 const DARK: [number, number, number] = [28, 28, 26];
 const GRAY: [number, number, number] = [107, 106, 101];
 const LIGHT: [number, number, number] = [242, 240, 235];
+const WHITE: [number, number, number] = [255, 255, 255];
 
-function addPageHeader(doc: InstanceType<Awaited<ReturnType<typeof getJsPDF>>>, pageNum: number) {
-  if (pageNum > 1) {
-    doc.setFillColor(...TEAL);
-    doc.rect(0, 0, 210, 10, 'F');
-    doc.setFontSize(7);
-    doc.setTextColor(255, 255, 255);
-    doc.text('Vazhi வழி · Your College Readiness Plan', 10, 6.5);
-    doc.text(`Page ${pageNum}`, 200, 6.5, { align: 'right' });
-  }
+type Doc = InstanceType<Awaited<ReturnType<typeof getJsPDF>>>;
+
+const FOOTER_TEXT =
+  'This is a navigation guide, not legal advice. Verify eligibility with the contacts listed.';
+
+function addFooter(doc: Doc, pageNum: number, pageW: number) {
+  const footerY = 287;
+  doc.setFillColor(...TEAL);
+  doc.rect(0, footerY - 1, pageW, 10, 'F');
+  doc.setFontSize(6.5);
+  doc.setFont('helvetica', 'italic');
+  doc.setTextColor(...WHITE);
+  doc.text(FOOTER_TEXT, pageW / 2, footerY + 4, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Vazhi வழி  ·  Page ${pageNum}`, pageW - 12, footerY + 4, { align: 'right' });
+}
+
+function addPageHeader(doc: Doc, pageW: number) {
+  doc.setFillColor(...TEAL);
+  doc.rect(0, 0, pageW, 10, 'F');
+  doc.setFontSize(7);
+  doc.setTextColor(...WHITE);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Vazhi வழி · Your College Readiness Plan', 12, 6.5);
+}
+
+function fmt(n: number) {
+  return n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 }
 
 export async function exportToPDF(
-  result: AssessmentResult,
-  scores: ScoreState
+  _intakeData: IntakeFormData,
+  overview: OverviewResult | null,
+  financial: FinancialAidResult | null,
+  schools: SchoolMatchResult | null,
+  actionPlan: ActionPlanResult | null,
+  roadmap: RoadmapResult | null,
 ): Promise<void> {
   const JsPDF = await getJsPDF();
   const doc = new JsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
   const pageW = 210;
-  const margin = 15;
+  const margin = 14;
   const contentW = pageW - margin * 2;
   let y = 0;
   let pageNum = 1;
 
   const checkNewPage = (neededHeight: number) => {
-    if (y + neededHeight > 275) {
+    if (y + neededHeight > 278) {
+      addFooter(doc, pageNum, pageW);
       doc.addPage();
       pageNum++;
-      addPageHeader(doc, pageNum);
-      y = pageNum > 1 ? 18 : 0;
+      addPageHeader(doc, pageW);
+      y = 16;
     }
   };
 
-  // ── Cover / Header ─────────────────────────────────────────────────────
+  // ── Cover Page ─────────────────────────────────────────────────────────────
+  // Full teal background
   doc.setFillColor(...TEAL);
-  doc.rect(0, 0, pageW, 55, 'F');
+  doc.rect(0, 0, pageW, 297, 'F');
 
-  doc.setFontSize(22);
-  doc.setTextColor(255, 255, 255);
+  // Amber accent bar
+  doc.setFillColor(...AMBER);
+  doc.rect(0, 80, pageW, 2, 'F');
+
+  // Logo / brand
+  doc.setFontSize(28);
   doc.setFont('helvetica', 'bold');
-  doc.text('Your College Readiness Plan', margin, 22);
+  doc.setTextColor(...WHITE);
+  doc.text('Vazhi வழி', pageW / 2, 48, { align: 'center' });
+
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(180, 230, 215);
+  doc.text('வழி  ·  "path" in Tamil', pageW / 2, 57, { align: 'center' });
+
+  // Title block
+  doc.setFontSize(20);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...WHITE);
+  doc.text('Your College Readiness Plan', pageW / 2, 96, { align: 'center' });
 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(200, 230, 222);
-  doc.text('Vazhi வழி · Powered by AI · Verified with Arizona Program Data', margin, 30);
-
-  const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-  doc.text(`Generated: ${today}`, margin, 37);
-
-  // Privacy note
-  doc.setFontSize(7);
-  doc.setTextColor(180, 210, 200);
-  doc.text('This plan was generated in your browser. No personal data was stored or shared.', margin, 48);
-
-  y = 63;
-
-  // ── Key Insight ────────────────────────────────────────────────────────
-  doc.setFillColor(...AMBER);
-  doc.roundedRect(margin, y, contentW, 16, 3, 3, 'F');
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(255, 255, 255);
-  doc.text('KEY INSIGHT', margin + 4, y + 5);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8.5);
-  const insightLines = doc.splitTextToSize(result.key_insight, contentW - 8);
-  doc.text(insightLines.slice(0, 1), margin + 4, y + 11);
-  y += 22;
-
-  // ── Readiness Scores ───────────────────────────────────────────────────
-  doc.setFontSize(13);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...DARK);
-  doc.text('Readiness Scores', margin, y);
-  y += 6;
-
-  doc.setFillColor(...LIGHT);
-  doc.roundedRect(margin, y, contentW, 40, 3, 3, 'F');
-
-  const scoreItems = [
-    { label: 'Overall', value: scores.overall },
-    { label: 'Academic', value: scores.academic },
-    { label: 'Financial Aid', value: scores.financial_aid },
-    { label: 'Applications', value: scores.application },
-    { label: 'Timeline', value: scores.timeline },
-  ];
-
-  const colW = contentW / scoreItems.length;
-  scoreItems.forEach((item, i) => {
-    const cx = margin + i * colW + colW / 2;
-
-    // Score circle (simplified)
-    const scoreColor: [number, number, number] = item.value >= 75 ? [59, 109, 17] :
-      item.value >= 50 ? TEAL :
-      item.value >= 30 ? AMBER : [216, 90, 48];
-    doc.setDrawColor(...scoreColor);
-    doc.setLineWidth(1.5);
-    doc.circle(cx, y + 14, 8, 'D');
-
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...scoreColor);
-    doc.text(String(item.value), cx, y + 16.5, { align: 'center' });
-
-    doc.setFontSize(7);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...GRAY);
-    doc.text(item.label, cx, y + 27, { align: 'center' });
-
-    // Score bar
-    const barW = colW - 10;
-    const barX = cx - barW / 2;
-    doc.setFillColor(220, 215, 205);
-    doc.rect(barX, y + 30, barW, 2, 'F');
-    doc.setFillColor(...scoreColor);
-    doc.rect(barX, y + 30, barW * (item.value / 100), 2, 'F');
+  doc.setTextColor(180, 230, 215);
+  const today = new Date().toLocaleDateString('en-US', {
+    month: 'long', day: 'numeric', year: 'numeric',
   });
-  y += 48;
+  doc.text(`Generated: ${today}`, pageW / 2, 104, { align: 'center' });
+  doc.text('Powered by AI · Verified with Arizona Program Data', pageW / 2, 110, { align: 'center' });
 
-  // Summary
-  doc.setFontSize(8.5);
+  // Sections generated summary
+  const sectionsList = [
+    overview && 'Overview & Readiness Scores',
+    financial && 'Financial Aid Programs',
+    schools && 'School Matches',
+    actionPlan && 'Action Plan',
+    roadmap && 'Semester Roadmap',
+  ].filter(Boolean) as string[];
+
+  if (sectionsList.length > 0) {
+    doc.setFillColor(10, 79, 62);
+    doc.roundedRect(margin + 15, 124, contentW - 30, sectionsList.length * 8 + 14, 3, 3, 'F');
+
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...AMBER);
+    doc.text('SECTIONS IN THIS PLAN', pageW / 2, 133, { align: 'center' });
+
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(180, 230, 215);
+    sectionsList.forEach((s, i) => {
+      doc.text(`✓  ${s}`, margin + 22, 141 + i * 8);
+    });
+  }
+
+  // Privacy note at bottom
+  doc.setFontSize(7.5);
   doc.setFont('helvetica', 'italic');
-  doc.setTextColor(...GRAY);
-  const summaryLines = doc.splitTextToSize(result.readiness.overall_summary, contentW);
-  doc.text(summaryLines.slice(0, 2), margin, y);
-  y += summaryLines.slice(0, 2).length * 4.5 + 6;
+  doc.setTextColor(140, 200, 180);
+  doc.text(
+    'Your data was generated in your browser. No personal data was stored or shared.',
+    pageW / 2, 270, { align: 'center' }
+  );
 
-  // ── Matched Programs ───────────────────────────────────────────────────
-  checkNewPage(30);
-  doc.setFontSize(13);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...DARK);
-  doc.text('Your Matched Funding', margin, y);
-  y += 7;
+  addFooter(doc, pageNum, pageW);
 
-  result.matched_programs.forEach(program => {
-    checkNewPage(38);
+  // ── Start content pages ────────────────────────────────────────────────────
+  doc.addPage();
+  pageNum++;
+  addPageHeader(doc, pageW);
+  y = 16;
 
-    const confColor: [number, number, number] = program.confidence === 'eligible' ? [59, 109, 17] :
-      program.confidence === 'likely_eligible' ? TEAL : AMBER;
-
-    doc.setFillColor(248, 246, 241);
-    doc.roundedRect(margin, y, contentW, 32, 2, 2, 'F');
-
-    // Program name + amount
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...DARK);
-    doc.text(program.name, margin + 4, y + 7);
-
-    doc.setFontSize(9);
-    doc.setTextColor(...TEAL);
-    doc.setFont('helvetica', 'bold');
-    doc.text(program.max_amount, margin + 4, y + 13);
-
-    // Confidence badge
-    doc.setFillColor(...confColor);
-    const badgeLabel = program.confidence.replace('_', ' ').toUpperCase();
-    doc.roundedRect(pageW - margin - 35, y + 3, 33, 6, 1.5, 1.5, 'F');
-    doc.setFontSize(6.5);
-    doc.setTextColor(255, 255, 255);
-    doc.text(badgeLabel, pageW - margin - 35 + 16.5, y + 7.2, { align: 'center' });
-
-    // Coverage + next action
-    doc.setFontSize(7.5);
-    doc.setTextColor(...GRAY);
-    doc.setFont('helvetica', 'normal');
-    const coverLines = doc.splitTextToSize(program.what_it_covers, contentW - 10);
-    doc.text(coverLines.slice(0, 1), margin + 4, y + 19);
-
-    doc.setTextColor(...DARK);
-    const actionLines = doc.splitTextToSize(`→ ${program.next_action}`, contentW - 10);
-    doc.text(actionLines.slice(0, 1), margin + 4, y + 25);
-
-    // Source
-    doc.setFontSize(6.5);
-    doc.setTextColor(...TEAL);
-    doc.text(program.source_url, margin + 4, y + 30);
-
-    y += 37;
-  });
-
-  // ── Action Plan ────────────────────────────────────────────────────────
-  checkNewPage(20);
-  doc.setFontSize(13);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...DARK);
-  doc.text('Your Action Plan', margin, y);
-  y += 7;
-
-  result.action_plan.forEach(step => {
-    const baseH = 45;
-    const docsNeeded = step.documents_needed.filter(d => d.status === 'need');
-    const estimatedH = baseH + docsNeeded.length * 6;
-    checkNewPage(estimatedH);
-
-    // Step header background
+  // ── Section: Overview & Readiness ─────────────────────────────────────────
+  if (overview) {
+    // Section header
     doc.setFillColor(...TEAL);
-    doc.rect(margin, y, contentW, 9, 'F');
-
-    doc.setFontSize(8);
+    doc.roundedRect(margin, y, contentW, 8, 2, 2, 'F');
+    doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(255, 255, 255);
-    doc.text(`STEP ${step.step_number}  ·  ${step.title.toUpperCase()}`, margin + 4, y + 6);
+    doc.setTextColor(...WHITE);
+    doc.text('OVERVIEW & READINESS SCORES', margin + 4, y + 5.5);
+    y += 12;
 
-    // Confidence
-    const confLabel = step.confidence.toUpperCase();
-    doc.setFontSize(7);
-    doc.text(confLabel, pageW - margin - 4, y + 6, { align: 'right' });
-
-    y += 11;
-
-    // Body
-    doc.setFillColor(248, 246, 241);
-    const bodyH = estimatedH - 11;
-    doc.rect(margin, y, contentW, bodyH, 'F');
-
-    let innerY = y + 5;
-
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'italic');
-    doc.setTextColor(...GRAY);
-    const whyLines = doc.splitTextToSize(step.why_this_is_next, contentW - 8);
-    doc.text(whyLines.slice(0, 2), margin + 4, innerY);
-    innerY += whyLines.slice(0, 2).length * 4 + 3;
-
-    // What to do
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...DARK);
-    doc.text('What to do:', margin + 4, innerY);
-    innerY += 4;
-    doc.setFont('helvetica', 'normal');
-    const actionLines = doc.splitTextToSize(step.specific_action, contentW - 8);
-    doc.text(actionLines.slice(0, 2), margin + 4, innerY);
-    innerY += actionLines.slice(0, 2).length * 4 + 2;
-
-    // Where + deadline on one line
-    doc.setFontSize(7.5);
-    doc.setTextColor(...GRAY);
-    doc.text(`Where: ${step.where_to_go}`, margin + 4, innerY);
-    innerY += 4;
-
-    if (step.deadline) {
-      doc.setTextColor(step.days_until_deadline && step.days_until_deadline <= 14 ? 216 : 107,
-        step.days_until_deadline && step.days_until_deadline <= 14 ? 90 : 106,
-        step.days_until_deadline && step.days_until_deadline <= 14 ? 48 : 101);
-      doc.text(`Deadline: ${step.deadline}`, margin + 4, innerY);
-      innerY += 4;
+    // Key insight
+    if (overview.key_insight) {
+      checkNewPage(20);
+      doc.setFillColor(...AMBER);
+      doc.roundedRect(margin, y, contentW, 14, 2, 2, 'F');
+      doc.setFontSize(7.5);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...WHITE);
+      doc.text('KEY INSIGHT', margin + 4, y + 4.5);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      const insightLines = doc.splitTextToSize(overview.key_insight, contentW - 8);
+      doc.text(insightLines.slice(0, 1), margin + 4, y + 10.5);
+      y += 18;
     }
 
-    // Docs needed
-    if (docsNeeded.length > 0) {
+    // Score grid
+    checkNewPage(44);
+    doc.setFillColor(...LIGHT);
+    doc.roundedRect(margin, y, contentW, 38, 2, 2, 'F');
+
+    const scoreItems = [
+      { label: 'Overall', value: overview.readiness.overall },
+      { label: 'Academic', value: overview.readiness.academic.score },
+      { label: 'Financial Aid', value: overview.readiness.financial_aid.score },
+      { label: 'Applications', value: overview.readiness.application.score },
+      { label: 'Timeline', value: overview.readiness.timeline.score },
+    ];
+
+    const colW = contentW / scoreItems.length;
+    scoreItems.forEach((item, i) => {
+      const cx = margin + i * colW + colW / 2;
+      const scoreColor: [number, number, number] =
+        item.value >= 75 ? [59, 109, 17] :
+        item.value >= 50 ? TEAL :
+        item.value >= 30 ? AMBER : [216, 90, 48];
+
+      doc.setDrawColor(...scoreColor);
+      doc.setLineWidth(1.5);
+      doc.circle(cx, y + 13, 7, 'D');
+
+      doc.setFontSize(9.5);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(...DARK);
-      doc.text('Documents to get:', margin + 4, innerY);
-      innerY += 4;
+      doc.setTextColor(...scoreColor);
+      doc.text(String(item.value), cx, y + 15.5, { align: 'center' });
+
+      doc.setFontSize(6.5);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(...GRAY);
-      docsNeeded.slice(0, 3).forEach(d => {
-        doc.text(`• ${d.name}: ${d.how_to_get}`, margin + 6, innerY);
-        innerY += 4;
+      doc.text(item.label, cx, y + 25, { align: 'center' });
+
+      // Bar
+      const barW = colW - 10;
+      const barX = cx - barW / 2;
+      doc.setFillColor(210, 205, 195);
+      doc.rect(barX, y + 28, barW, 2, 'F');
+      doc.setFillColor(...scoreColor);
+      doc.rect(barX, y + 28, barW * (item.value / 100), 2, 'F');
+    });
+    y += 44;
+
+    // Overall summary
+    if (overview.readiness.overall_summary) {
+      checkNewPage(14);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(...GRAY);
+      const summLines = doc.splitTextToSize(overview.readiness.overall_summary, contentW);
+      doc.text(summLines.slice(0, 2), margin, y);
+      y += summLines.slice(0, 2).length * 4.5 + 4;
+    }
+
+    // Program summaries
+    if (overview.matched_programs.length > 0) {
+      checkNewPage(12);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...DARK);
+      doc.text('Funding You May Qualify For', margin, y);
+      y += 6;
+
+      overview.matched_programs.forEach(prog => {
+        checkNewPage(14);
+        const confColor: [number, number, number] =
+          prog.confidence === 'eligible' ? [59, 109, 17] :
+          prog.confidence === 'likely_eligible' ? TEAL : AMBER;
+
+        doc.setFillColor(248, 246, 241);
+        doc.roundedRect(margin, y, contentW, 11, 1.5, 1.5, 'F');
+        doc.setFontSize(8.5);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...DARK);
+        doc.text(prog.name, margin + 4, y + 5);
+        doc.setFontSize(7.5);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...confColor);
+        doc.text(prog.max_amount, margin + 4, y + 9.5);
+
+        // Confidence badge
+        doc.setFillColor(...confColor);
+        doc.roundedRect(pageW - margin - 28, y + 2, 26, 5, 1, 1, 'F');
+        doc.setFontSize(6);
+        doc.setTextColor(...WHITE);
+        doc.text(prog.confidence.replace('_', ' ').toUpperCase(), pageW - margin - 15, y + 5.5, { align: 'center' });
+
+        y += 14;
       });
     }
 
-    // Source
-    doc.setFontSize(6.5);
-    doc.setTextColor(...TEAL);
-    doc.text(step.source_url, margin + 4, y + bodyH - 4);
+    y += 4;
+  } else {
+    addNotGenerated(doc, margin, contentW, y, 'Overview & Readiness Scores');
+    y += 22;
+  }
 
-    y += bodyH + 4;
-  });
+  // ── Section: Financial Aid ─────────────────────────────────────────────────
+  checkNewPage(16);
+  doc.setFillColor(...TEAL);
+  doc.roundedRect(margin, y, contentW, 8, 2, 2, 'F');
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...WHITE);
+  doc.text('FINANCIAL AID PROGRAMS', margin + 4, y + 5.5);
+  y += 12;
 
-  // ── Footer ─────────────────────────────────────────────────────────────
-  checkNewPage(20);
+  if (financial) {
+    financial.matched_programs.forEach(prog => {
+      const docsNeeded = prog.deadline ? 1 : 0;
+      const cardH = 34 + docsNeeded * 4;
+      checkNewPage(cardH);
+
+      const confColor: [number, number, number] =
+        prog.confidence === 'eligible' ? [59, 109, 17] :
+        prog.confidence === 'likely_eligible' ? TEAL : AMBER;
+
+      doc.setFillColor(248, 246, 241);
+      doc.roundedRect(margin, y, contentW, cardH, 2, 2, 'F');
+
+      // Left accent bar in confidence color
+      doc.setFillColor(...confColor);
+      doc.roundedRect(margin, y, 2.5, cardH, 1, 1, 'F');
+
+      doc.setFontSize(9.5);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...DARK);
+      doc.text(prog.name, margin + 6, y + 7);
+
+      doc.setFontSize(9);
+      doc.setTextColor(...TEAL);
+      doc.setFont('helvetica', 'bold');
+      doc.text(prog.max_amount, margin + 6, y + 13);
+
+      // Confidence badge
+      doc.setFillColor(...confColor);
+      doc.roundedRect(pageW - margin - 32, y + 3, 30, 6, 1.5, 1.5, 'F');
+      doc.setFontSize(6.5);
+      doc.setTextColor(...WHITE);
+      doc.text(prog.confidence.replace('_', ' ').toUpperCase(), pageW - margin - 17, y + 7, { align: 'center' });
+
+      doc.setFontSize(7.5);
+      doc.setTextColor(...GRAY);
+      doc.setFont('helvetica', 'normal');
+      const coverLines = doc.splitTextToSize(prog.what_it_covers, contentW - 12);
+      doc.text(coverLines.slice(0, 1), margin + 6, y + 19);
+
+      doc.setTextColor(...DARK);
+      const actionLines = doc.splitTextToSize(`→ ${prog.next_action}`, contentW - 12);
+      doc.text(actionLines.slice(0, 1), margin + 6, y + 24.5);
+
+      if (prog.deadline) {
+        const dColor: [number, number, number] =
+          (prog.days_until_deadline ?? 999) <= 14 ? [216, 90, 48] : AMBER;
+        doc.setTextColor(...dColor);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`Deadline: ${prog.deadline}`, margin + 6, y + 30);
+      }
+
+      doc.setFontSize(6.5);
+      doc.setTextColor(...TEAL);
+      doc.setFont('helvetica', 'normal');
+      doc.text(prog.source_url, margin + 6, y + cardH - 4);
+
+      y += cardH + 4;
+    });
+  } else {
+    addNotGenerated(doc, margin, contentW, y, 'Financial Aid');
+    y += 22;
+  }
+
   y += 4;
-  doc.setDrawColor(...LIGHT);
-  doc.setLineWidth(0.3);
-  doc.line(margin, y, pageW - margin, y);
-  y += 6;
-  doc.setFontSize(7.5);
-  doc.setFont('helvetica', 'italic');
-  doc.setTextColor(...GRAY);
-  doc.text(
-    'This plan is a navigation guide, not legal or financial advice. Always verify eligibility with program offices.',
-    pageW / 2, y, { align: 'center' }
-  );
+
+  // ── Section: School Matches ────────────────────────────────────────────────
+  checkNewPage(16);
+  doc.setFillColor(...TEAL);
+  doc.roundedRect(margin, y, contentW, 8, 2, 2, 'F');
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...WHITE);
+  doc.text('SCHOOL MATCHES', margin + 4, y + 5.5);
+  y += 12;
+
+  if (schools) {
+    if (schools.other_options_note) {
+      checkNewPage(12);
+      doc.setFontSize(7.5);
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(...GRAY);
+      const noteLines = doc.splitTextToSize(schools.other_options_note, contentW);
+      doc.text(noteLines.slice(0, 2), margin, y);
+      y += noteLines.slice(0, 2).length * 4 + 4;
+    }
+
+    schools.school_matches.forEach(school => {
+      const cb = school.cost_breakdown;
+      checkNewPage(70);
+
+      // School header
+      const fitColor: [number, number, number] =
+        school.fit_label === 'Strong match' ? TEAL :
+        school.fit_label === 'Good match' ? AMBER : GRAY;
+
+      doc.setFillColor(248, 246, 241);
+      doc.roundedRect(margin, y, contentW, 66, 2, 2, 'F');
+
+      // School name + fit badge
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...DARK);
+      doc.text(school.name, margin + 4, y + 8);
+
+      doc.setFillColor(...fitColor);
+      doc.roundedRect(pageW - margin - 36, y + 2, 34, 7, 2, 2, 'F');
+      doc.setFontSize(7);
+      doc.setTextColor(...WHITE);
+      doc.text(school.fit_label.toUpperCase(), pageW - margin - 19, y + 6.5, { align: 'center' });
+
+      doc.setFontSize(7.5);
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(...GRAY);
+      const whyLines = doc.splitTextToSize(school.why_this_school, contentW - 8);
+      doc.text(whyLines.slice(0, 2), margin + 4, y + 14);
+
+      // Cost breakdown table
+      const tableY = y + 22;
+      const col1 = margin + 4;
+      const col2 = pageW - margin - 4;
+
+      doc.setFontSize(7.5);
+      const rows = [
+        { label: 'Annual Tuition', value: fmt(cb.annual_tuition) },
+        { label: '− Pell Grant', value: `-${fmt(cb.pell_grant_applied)}`, color: [59, 109, 17] as [number, number, number] },
+        { label: '− Tuition Waiver', value: `-${fmt(cb.annual_tuition - cb.tuition_after_waiver - cb.pell_grant_applied)}`, color: [59, 109, 17] as [number, number, number] },
+        { label: '− ETV Applied', value: `-${fmt(cb.etv_applied)}`, color: [59, 109, 17] as [number, number, number] },
+        { label: 'Fees + Books + Living', value: fmt(cb.mandatory_fees + cb.books_supplies + cb.housing_estimate) },
+      ];
+
+      rows.forEach((row, i) => {
+        const rowY = tableY + i * 5.5;
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...((row.color as [number, number, number]) ?? GRAY));
+        doc.text(row.label, col1, rowY);
+        doc.text(row.value, col2, rowY, { align: 'right' });
+      });
+
+      // Out-of-pocket row — bold, teal background
+      const oopY = tableY + rows.length * 5.5 + 1;
+      doc.setFillColor(...TEAL);
+      doc.roundedRect(col1 - 2, oopY - 4, contentW - 4, 7, 1, 1, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(...WHITE);
+      doc.text('Est. Out-of-Pocket', col1, oopY + 0.5);
+      doc.text(fmt(cb.estimated_out_of_pocket), col2, oopY + 0.5, { align: 'right' });
+
+      // Foster support note
+      if (school.foster_support.program_name) {
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...TEAL);
+        doc.text(`★  ${school.foster_support.program_name}`, col1, y + 60);
+      }
+
+      y += 70;
+    });
+  } else {
+    addNotGenerated(doc, margin, contentW, y, 'School Matches');
+    y += 22;
+  }
+
   y += 4;
-  doc.text('Vazhi வழி · vazhi.app · Built for foster youth in Arizona', pageW / 2, y, { align: 'center' });
+
+  // ── Section: Action Plan ───────────────────────────────────────────────────
+  checkNewPage(16);
+  doc.setFillColor(...TEAL);
+  doc.roundedRect(margin, y, contentW, 8, 2, 2, 'F');
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...WHITE);
+  doc.text('ACTION PLAN', margin + 4, y + 5.5);
+  y += 12;
+
+  if (actionPlan) {
+    actionPlan.action_plan.forEach(step => {
+      const docsNeeded = step.documents_needed.filter(d => d.status === 'need');
+      const estimatedH = 38 + docsNeeded.length * 5;
+      checkNewPage(estimatedH);
+
+      // Step header
+      doc.setFillColor(10, 79, 62);
+      doc.roundedRect(margin, y, contentW, 8, 2, 2, 'F');
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...WHITE);
+      doc.text(`STEP ${step.step_number}  ·  ${step.title}`, margin + 4, y + 5.5);
+
+      const confLabel = step.confidence === 'certain' ? '✓ Certain' : step.confidence === 'high' ? 'High' : 'Verify';
+      doc.setFontSize(7);
+      doc.text(confLabel, pageW - margin - 3, y + 5.5, { align: 'right' });
+      y += 10;
+
+      // Body
+      doc.setFillColor(248, 246, 241);
+      const bodyH = estimatedH - 10;
+      doc.roundedRect(margin, y, contentW, bodyH, 0, 0, 'F');
+
+      let innerY = y + 5;
+
+      doc.setFontSize(7.5);
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(...GRAY);
+      const whyLines = doc.splitTextToSize(step.why_this_is_next, contentW - 8);
+      doc.text(whyLines.slice(0, 2), margin + 4, innerY);
+      innerY += whyLines.slice(0, 2).length * 3.8 + 2;
+
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...DARK);
+      doc.setFontSize(8);
+      doc.text('What to do:', margin + 4, innerY);
+      innerY += 4.5;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      const actionLines = doc.splitTextToSize(step.specific_action, contentW - 8);
+      doc.text(actionLines.slice(0, 2), margin + 4, innerY);
+      innerY += actionLines.slice(0, 2).length * 3.8 + 2;
+
+      doc.setTextColor(...GRAY);
+      doc.text(`Where: ${step.where_to_go}`, margin + 4, innerY);
+      innerY += 4;
+
+      if (step.deadline) {
+        const dColor: [number, number, number] =
+          (step.days_until_deadline ?? 999) <= 14 ? [216, 90, 48] : AMBER;
+        doc.setTextColor(...dColor);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`Deadline: ${step.deadline}`, margin + 4, innerY);
+        innerY += 4;
+      }
+
+      if (docsNeeded.length > 0) {
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...DARK);
+        doc.text('Documents needed:', margin + 4, innerY);
+        innerY += 4;
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...GRAY);
+        docsNeeded.slice(0, 3).forEach(d => {
+          doc.text(`• ${d.name}${d.how_to_get ? ': ' + d.how_to_get : ''}`, margin + 6, innerY);
+          innerY += 4;
+        });
+      }
+
+      doc.setFontSize(6.5);
+      doc.setTextColor(...TEAL);
+      doc.text(step.source_url, margin + 4, y + bodyH - 3.5);
+
+      y += bodyH + 4;
+    });
+  } else {
+    addNotGenerated(doc, margin, contentW, y, 'Action Plan');
+    y += 22;
+  }
+
+  y += 4;
+
+  // ── Section: Semester Roadmap ──────────────────────────────────────────────
+  checkNewPage(16);
+  doc.setFillColor(...TEAL);
+  doc.roundedRect(margin, y, contentW, 8, 2, 2, 'F');
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...WHITE);
+  doc.text('SEMESTER ROADMAP', margin + 4, y + 5.5);
+  y += 12;
+
+  if (roadmap) {
+    const sr = roadmap.semester_roadmap;
+
+    // School + semesters header
+    checkNewPage(20);
+    doc.setFillColor(10, 79, 62);
+    doc.roundedRect(margin, y, contentW, 14, 2, 2, 'F');
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...WHITE);
+    doc.text(sr.based_on_school, margin + 4, y + 6);
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(180, 230, 215);
+    doc.text(
+      `Starting ${sr.recommended_start}  ·  ${sr.total_semesters_to_degree} semesters to degree`,
+      margin + 4, y + 11
+    );
+    y += 18;
+
+    sr.phases.forEach(phase => {
+      const taskCount = phase.tasks.length;
+      const phaseH = 12 + taskCount * 12;
+      checkNewPage(phaseH);
+
+      // Phase header
+      const phaseColor: [number, number, number] =
+        phase.phase_type === 'preparation' ? AMBER :
+        phase.phase_type === 'summer' ? [14, 165, 233] :
+        phase.phase_type === 'graduation' ? [202, 138, 4] : TEAL;
+
+      doc.setFillColor(...phaseColor);
+      doc.roundedRect(margin, y, contentW, 8, 2, 2, 'F');
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...WHITE);
+      doc.text(phase.name, margin + 4, y + 5.5);
+      if (phase.semester_cost_estimate) {
+        doc.text(`Est. ${fmt(phase.semester_cost_estimate)}`, pageW - margin - 3, y + 5.5, { align: 'right' });
+      }
+      y += 10;
+
+      // Tasks
+      phase.tasks.forEach(task => {
+        checkNewPage(12);
+        doc.setFillColor(248, 246, 241);
+        doc.roundedRect(margin, y, contentW, 10, 1, 1, 'F');
+
+        if (task.deadline) {
+          doc.setFillColor(...AMBER);
+          doc.rect(margin, y, 2, 10, 'F');
+        }
+
+        doc.setFontSize(7.5);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...DARK);
+        doc.text(task.task, margin + 5, y + 4.5);
+
+        doc.setFontSize(6.5);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...GRAY);
+        const detail = [task.estimated_time, task.deadline].filter(Boolean).join(' · ');
+        doc.text(detail, margin + 5, y + 8.5);
+
+        y += 12;
+      });
+
+      if (phase.funding_applied) {
+        checkNewPage(8);
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'italic');
+        doc.setTextColor(...TEAL);
+        doc.text(`✓  ${phase.funding_applied}`, margin + 4, y);
+        y += 6;
+      }
+
+      y += 2;
+    });
+  } else {
+    addNotGenerated(doc, margin, contentW, y, 'Semester Roadmap');
+    y += 22;
+  }
+
+  // Final footer on last page
+  addFooter(doc, pageNum, pageW);
 
   doc.save('vazhi-college-plan.pdf');
+}
+
+function addNotGenerated(doc: Doc, margin: number, contentW: number, y: number, sectionName: string) {
+  doc.setFillColor(248, 246, 241);
+  doc.roundedRect(margin, y, contentW, 16, 2, 2, 'F');
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'italic');
+  doc.setTextColor(107, 106, 101);
+  doc.text(
+    `${sectionName}: Generate this section in the app for personalized results.`,
+    margin + 6, y + 9.5
+  );
 }

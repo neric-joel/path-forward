@@ -31,14 +31,14 @@ export function ActionPlan({ result, completedSteps, scores, onToggleStep }: Act
     <section className="space-y-4">
       <div>
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-[#1C1C1A]" style={{ fontFamily: "'DM Serif Display', serif" }}>
+          <h2 className="text-2xl font-bold text-[#1C1C1A]" style={{ fontFamily: "'DM Serif Display', serif" }}>
             Your Action Plan
           </h2>
           <span className="text-sm font-semibold text-[#0F6E56] bg-[#0F6E56]/10 px-3 py-1 rounded-full">
             {completedCount}/{totalSteps} done
           </span>
         </div>
-        <p className="text-[#6B6A65] text-sm mt-1">
+        <p className="text-[#6B6A65] text-[15px] mt-1">
           Steps are sequenced so each one builds on the last. Check them off as you go — your score updates instantly.
         </p>
 
@@ -90,7 +90,7 @@ export function ActionPlan({ result, completedSteps, scores, onToggleStep }: Act
 
       {/* Score note */}
       {scores && (
-        <p className="text-xs text-center text-[#6B6A65]">
+        <p className="text-[13px] text-center text-[#6B6A65]">
           Current overall score: <span className="font-bold text-[#0F6E56]">{scores.overall}/100</span>
         </p>
       )}

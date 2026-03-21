@@ -63,10 +63,10 @@ export function ScoreRing({
           <span className="text-2xl font-bold leading-none" style={{ color: scoreColor }}>
             {score}
           </span>
-          <span className="text-[10px] text-[#6B6A65] font-medium">/100</span>
+          <span className="text-[11px] text-[#6B6A65] font-medium">/100</span>
         </div>
       </div>
-      <p className="text-xs font-semibold text-[#1C1C1A] text-center leading-tight max-w-[80px]">{label}</p>
+      <p className="text-[13px] font-semibold text-[#1C1C1A] text-center leading-tight max-w-[80px]">{label}</p>
     </div>
   );
 }

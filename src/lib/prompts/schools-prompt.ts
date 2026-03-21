@@ -1,5 +1,6 @@
 import arizonaData from '../knowledge-base/arizona.json';
 import schoolsData from '../knowledge-base/arizona-schools.json';
+import type { SchoolPreferences } from '../types';
 import {
   PERSONA,
   CORE_PRINCIPLES,
@@ -15,7 +16,20 @@ import {
  * Returns: top 3 school matches with full cost breakdowns, foster support, housing options.
  * Medium response (~2500–3500 tokens). On-demand only.
  */
-export function buildSchoolsPrompt(): string {
+export function buildSchoolsPrompt(prefs?: SchoolPreferences): string {
+  const contextBlock = prefs && Object.keys(prefs).length > 0
+    ? `\n═══════════════════════════════════════════════════════════
+USER PREFERENCES (use to adjust location_fit and goal_fit weights)
+═══════════════════════════════════════════════════════════
+
+${prefs.location ? `Preferred location in Arizona: ${prefs.location}` : ''}
+${prefs.priorities?.length ? `School priorities (user selected): ${prefs.priorities.join(', ')}` : ''}
+${prefs.transportation ? `Transportation availability: ${prefs.transportation}` : ''}
+
+Adjust location_fit scoring to strongly favor schools matching the user's preferred area.
+Adjust goal_fit to weight the user's selected priorities higher.
+If transportation is "No" or "Public transit only", weight transit_accessible schools more heavily.\n`
+    : '';
   return `${PERSONA}
 
 ${CORE_PRINCIPLES}
@@ -45,7 +59,7 @@ ARIZONA SCHOOLS DATABASE
 ${JSON.stringify(schoolsData, null, 2)}
 
 Today's date: ${new Date().toISOString().split('T')[0]}
-
+${contextBlock}
 ═══════════════════════════════════════════════════════════
 SCHOOL MATCHING RULES
 ═══════════════════════════════════════════════════════════

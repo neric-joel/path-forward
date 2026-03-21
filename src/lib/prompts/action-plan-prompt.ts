@@ -1,4 +1,5 @@
 import arizonaData from '../knowledge-base/arizona.json';
+import type { ActionPlanContext } from '../types';
 import {
   PERSONA,
   CORE_PRINCIPLES,
@@ -14,7 +15,20 @@ import {
  * Returns: sequenced action steps + score_deltas.
  * Medium response (~2000–2500 tokens). On-demand only.
  */
-export function buildActionPlanPrompt(): string {
+export function buildActionPlanPrompt(context?: ActionPlanContext): string {
+  const contextBlock = context && Object.keys(context).length > 0
+    ? `\n═══════════════════════════════════════════════════════════
+ADDITIONAL CONTEXT (use to personalize steps — NEVER echo housing or income in visible output per Safeguard 7)
+═══════════════════════════════════════════════════════════
+
+${context.has_caseworker ? `Caseworker/advocate: ${context.has_caseworker}` : ''}
+${context.housing_situation && context.housing_situation !== 'rather_not_say' ? `Housing situation context: ${context.housing_situation} — use to include relevant housing steps, but do NOT mention this in any step title or summary` : ''}
+${context.income_status && context.income_status !== 'rather_not_say' ? `Income context: ${context.income_status} — use to calibrate financial step urgency, but do NOT mention this in any step title or summary` : ''}
+
+If caseworker is "Yes" or "Not sure", include steps like "Contact your caseworker about foster care documentation."
+If housing is unstable, prioritize housing-related assistance steps early.
+Per Safeguard 8: if any field says "I'd rather not say", treat as unknown and use neutral defaults.\n`
+    : '';
   return `${PERSONA}
 
 ${CORE_PRINCIPLES}
@@ -36,7 +50,7 @@ ARIZONA PROGRAM DATABASE
 ${JSON.stringify(arizonaData, null, 2)}
 
 Today's date: ${new Date().toISOString().split('T')[0]}
-
+${contextBlock}
 ${SCORING_RULES}
 
 ═══════════════════════════════════════════════════════════

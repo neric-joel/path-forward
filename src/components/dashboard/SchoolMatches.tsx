@@ -28,7 +28,7 @@ export function SchoolMatches({ schools, otherOptionsNote }: SchoolMatchesProps)
       </div>
 
       {/* Intro explainer */}
-      <p className="text-sm text-[#6B6A65] mb-5 leading-relaxed max-w-2xl">
+      <p className="text-[15px] text-[#6B6A65] mb-5 leading-relaxed max-w-2xl">
         These schools are ranked by how well they match your situation — financial access,
         foster youth support, location, and your education goal. All three have Arizona's
         Tuition Waiver available.
@@ -52,7 +52,7 @@ export function SchoolMatches({ schools, otherOptionsNote }: SchoolMatchesProps)
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
             d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
-        <p className="text-sm text-[#4A4A45] leading-relaxed">{otherOptionsNote}</p>
+        <p className="text-[15px] text-[#4A4A45] leading-relaxed">{otherOptionsNote}</p>
       </div>
     </section>
   );

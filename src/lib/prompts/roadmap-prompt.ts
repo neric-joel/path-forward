@@ -1,4 +1,5 @@
 import schoolsData from '../knowledge-base/arizona-schools.json';
+import type { RoadmapPreferences } from '../types';
 import {
   PERSONA,
   CORE_PRINCIPLES,
@@ -9,11 +10,23 @@ import {
 
 /**
  * Tab 5 — Semester Roadmap prompt.
- * Returns: semester_roadmap based on the user's top matched school.
+ * Returns: semester_roadmap based on the user's selected school.
  * Requires topSchoolId from schoolResult (Tab 3).
  * Medium response (~1500–2500 tokens). On-demand only.
  */
-export function buildRoadmapPrompt(topSchoolId: string): string {
+export function buildRoadmapPrompt(topSchoolId: string, prefs?: RoadmapPreferences): string {
+  const contextBlock = prefs && Object.keys(prefs).length > 0
+    ? `\n═══════════════════════════════════════════════════════════
+USER ROADMAP PREFERENCES
+═══════════════════════════════════════════════════════════
+
+${prefs.attendance ? `Attendance plan: ${prefs.attendance === 'full_time' ? 'Full-time' : prefs.attendance === 'part_time' ? 'Part-time' : 'Not sure yet'}` : ''}
+${prefs.housing_preference ? `Housing preference: ${prefs.housing_preference === 'on_campus' ? 'On campus' : prefs.housing_preference === 'off_campus' ? 'Off campus' : 'Not sure yet'}` : ''}
+
+If part-time: adjust total_semesters_to_degree accordingly (roughly double for part-time vs full-time).
+If housing preference is on-campus: use on_campus_annual in cost estimates where available.
+If not sure: show both full-time and part-time semester counts in the recommended_start note.\n`
+    : '';
   return `${PERSONA}
 
 ${CORE_PRINCIPLES}
@@ -33,7 +46,7 @@ ARIZONA SCHOOLS DATABASE
 ${JSON.stringify(schoolsData, null, 2)}
 
 Today's date: ${new Date().toISOString().split('T')[0]}
-
+${contextBlock}
 ═══════════════════════════════════════════════════════════
 YOUR TASK
 ═══════════════════════════════════════════════════════════
