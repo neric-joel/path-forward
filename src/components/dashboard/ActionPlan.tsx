@@ -52,12 +52,14 @@ export function ActionPlan({ result, completedSteps, scores, onToggleStep }: Act
       </div>
 
       {/* Key insight callout */}
-      <div className="bg-[#0F6E56]/5 border border-[#0F6E56]/20 rounded-xl px-4 py-4">
-        <p className="text-sm text-[#1C1C1A] leading-relaxed">
-          <span className="font-semibold text-[#0F6E56]">Key insight: </span>
-          {result.key_insight}
-        </p>
-      </div>
+      {result.key_insight && (
+        <div className="bg-[#0F6E56]/5 border border-[#0F6E56]/20 rounded-xl px-4 py-4">
+          <p className="text-sm text-[#1C1C1A] leading-relaxed">
+            <span className="font-semibold text-[#0F6E56]">Key insight: </span>
+            {result.key_insight}
+          </p>
+        </div>
+      )}
 
       {/* Steps */}
       <div className="space-y-3">

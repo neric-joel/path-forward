@@ -133,7 +133,7 @@ export interface ScoreDelta {
   unlocks: number[];
 }
 
-// ─── Full Assessment Result (V2) ──────────────────────────────────────────────
+// ─── Full Assessment Result (V2 — kept for demo-data + pdf-export) ───────────
 export interface AssessmentResult {
   readiness: ReadinessScore;
   matched_programs: MatchedProgram[];
@@ -143,4 +143,56 @@ export interface AssessmentResult {
   semester_roadmap: SemesterRoadmap;
   score_deltas: Record<number, ScoreDelta>;
   key_insight: string;
+}
+
+// ─── V3 Per-Section Result Types ──────────────────────────────────────────────
+
+/** Slim program summary shown on the Overview tab */
+export interface MatchedProgramSummary {
+  id: string;
+  name: string;
+  max_amount: string;
+  confidence: 'eligible' | 'likely_eligible' | 'verify';
+  confidence_reason: string;
+  next_action: string;
+}
+
+/** Tab 1 — auto-fires on intake submit */
+export interface OverviewResult {
+  readiness: ReadinessScore;
+  matched_programs: MatchedProgramSummary[];
+  key_insight: string;
+}
+
+/** Tab 2 — on-demand: full financial aid details */
+export interface FinancialAidResult {
+  matched_programs: MatchedProgram[];
+}
+
+/** Tab 3 — on-demand: school matches with cost breakdowns */
+export interface SchoolMatchResult {
+  school_matches: SchoolMatch[];
+  other_options_note: string;
+}
+
+/** Tab 4 — on-demand: sequenced action plan + score deltas */
+export interface ActionPlanResult {
+  action_plan: ActionStep[];
+  score_deltas: Record<number, ScoreDelta>;
+}
+
+/** Tab 5 — on-demand: semester roadmap (requires schoolResult first) */
+export interface RoadmapResult {
+  semester_roadmap: SemesterRoadmap;
+}
+
+/** Union of all section states stored in App.tsx */
+export interface DashboardState {
+  intakeData: IntakeFormData;
+  overviewResult: OverviewResult | null;
+  financialResult: FinancialAidResult | null;
+  schoolResult: SchoolMatchResult | null;
+  actionResult: ActionPlanResult | null;
+  roadmapResult: RoadmapResult | null;
+  isDemo: boolean;
 }

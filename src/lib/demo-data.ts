@@ -1,4 +1,11 @@
-import type { AssessmentResult } from './types';
+import type {
+  AssessmentResult,
+  OverviewResult,
+  FinancialAidResult,
+  SchoolMatchResult,
+  ActionPlanResult,
+  RoadmapResult,
+} from './types';
 
 /**
  * Full V2 demo assessment — used when the API key is missing or the user clicks "Try Demo".
@@ -616,4 +623,37 @@ export const DEMO_RESULT: AssessmentResult = {
     4: { academic: 10, financial_aid: 5, application: 5, timeline: 5, overall: 7, unlocks: [] },
     5: { academic: 0, financial_aid: 15, application: 10, timeline: 0, overall: 8, unlocks: [] },
   },
+};
+
+// ─── V3 Per-Section Demo Data ─────────────────────────────────────────────────
+
+export const DEMO_OVERVIEW: OverviewResult = {
+  readiness: DEMO_RESULT.readiness,
+  matched_programs: DEMO_RESULT.matched_programs.map(p => ({
+    id: p.id,
+    name: p.name,
+    max_amount: p.max_amount,
+    confidence: p.confidence,
+    confidence_reason: p.confidence_reason,
+    next_action: p.next_action,
+  })),
+  key_insight: DEMO_RESULT.key_insight,
+};
+
+export const DEMO_FINANCIAL: FinancialAidResult = {
+  matched_programs: DEMO_RESULT.matched_programs,
+};
+
+export const DEMO_SCHOOLS: SchoolMatchResult = {
+  school_matches: DEMO_RESULT.school_matches,
+  other_options_note: DEMO_RESULT.other_options_note,
+};
+
+export const DEMO_ACTION_PLAN: ActionPlanResult = {
+  action_plan: DEMO_RESULT.action_plan,
+  score_deltas: DEMO_RESULT.score_deltas,
+};
+
+export const DEMO_ROADMAP: RoadmapResult = {
+  semester_roadmap: DEMO_RESULT.semester_roadmap,
 };

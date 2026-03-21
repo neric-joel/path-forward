@@ -1,0 +1,123 @@
+import { useEffect, useRef, useState } from 'react';
+import type { IntakeFormData, OverviewResult, MatchedProgramSummary } from '../../lib/types';
+import { fetchOverview } from '../../lib/claude';
+import { ReadinessSnapshot } from './ReadinessSnapshot';
+import { ConfidenceBadge } from '../shared/ConfidenceBadge';
+
+interface OverviewTabProps {
+  intakeData: IntakeFormData;
+  result: OverviewResult | null;
+  onLoaded: (r: OverviewResult) => void;
+}
+
+function ProgramSummaryCard({ program }: { program: MatchedProgramSummary }) {
+  return (
+    <div className="bg-white rounded-xl border border-[#E2DED6] px-4 py-4 flex items-start gap-3">
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap mb-1">
+          <span className="text-sm font-semibold text-[#1C1C1A]">{program.name}</span>
+          <ConfidenceBadge level={program.confidence} />
+        </div>
+        <p className="text-xs text-[#6B6A65] mb-2">{program.confidence_reason}</p>
+        <p className="text-xs text-[#0F6E56] font-medium">{program.next_action}</p>
+      </div>
+      <div className="flex-shrink-0 text-right">
+        <span className="text-sm font-bold text-[#1C1C1A]">{program.max_amount}</span>
+      </div>
+    </div>
+  );
+}
+
+export function OverviewTab({ intakeData, result, onLoaded }: OverviewTabProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const hasFired = useRef(false);
+
+  // Auto-fire on mount if no result yet
+  useEffect(() => {
+    if (result !== null || hasFired.current) return;
+    hasFired.current = true;
+
+    setIsLoading(true);
+    fetchOverview(intakeData)
+      .then(r => { onLoaded(r); })
+      .finally(() => { setIsLoading(false); });
+  }, [intakeData, result, onLoaded]);
+
+  if (isLoading) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+        {/* Key insight skeleton */}
+        <div className="h-20 bg-[#E2DED6] animate-pulse rounded-2xl" />
+        {/* Score rings skeleton */}
+        <div className="bg-white rounded-2xl border border-[#E2DED6] p-6">
+          <div className="h-4 w-32 bg-[#E2DED6] animate-pulse rounded mb-6" />
+          <div className="flex justify-around">
+            {[0, 1, 2, 3].map(i => (
+              <div key={i} className="flex flex-col items-center gap-2">
+                <div className="w-16 h-16 rounded-full bg-[#E2DED6] animate-pulse" />
+                <div className="h-3 w-12 bg-[#E2DED6] animate-pulse rounded" />
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Program cards skeleton */}
+        <div className="space-y-3">
+          {[0, 1, 2].map(i => (
+            <div key={i} className="h-20 bg-[#E2DED6] animate-pulse rounded-xl" />
+          ))}
+        </div>
+        <p className="text-center text-xs text-[#6B6A65]">
+          Analyzing your situation — usually takes 10–20 seconds…
+        </p>
+      </div>
+    );
+  }
+
+  if (!result) return null;
+
+  const scores = {
+    overall: result.readiness.overall,
+    academic: result.readiness.academic.score,
+    financial_aid: result.readiness.financial_aid.score,
+    application: result.readiness.application.score,
+    timeline: result.readiness.timeline.score,
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+      {/* Key Insight */}
+      <div className="bg-[#BA7517] text-white rounded-2xl px-6 py-5 shadow-md">
+        <p className="text-xs font-semibold uppercase tracking-widest text-white/70 mb-1">
+          Your Key Insight
+        </p>
+        <p className="text-base font-semibold leading-relaxed">{result.key_insight}</p>
+      </div>
+
+      {/* Readiness Scores */}
+      <ReadinessSnapshot readiness={result.readiness} scores={scores} />
+
+      {/* Funding Summary */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2
+            className="text-lg font-semibold text-[#1C1C1A]"
+            style={{ fontFamily: "'DM Serif Display', serif" }}
+          >
+            Funding You May Qualify For
+          </h2>
+          <span className="text-xs text-[#6B6A65] bg-[#F5F3EE] px-2 py-1 rounded-full">
+            {result.matched_programs.length} programs
+          </span>
+        </div>
+        <div className="space-y-3">
+          {result.matched_programs.map(p => (
+            <ProgramSummaryCard key={p.id} program={p} />
+          ))}
+        </div>
+        <p className="mt-3 text-xs text-[#6B6A65] text-center">
+          Go to the <strong>Funding</strong> tab for full details, deadlines, and exactly what to do first.
+        </p>
+      </div>
+    </div>
+  );
+}

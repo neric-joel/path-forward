@@ -1,16 +1,16 @@
 import { useNavigate } from 'react-router-dom';
 import { IntakeForm } from '../components/intake/IntakeForm';
-import type { AssessmentResult } from '../lib/types';
+import type { IntakeFormData } from '../lib/types';
 
 interface IntakePageProps {
-  onComplete: (result: AssessmentResult) => void;
+  onComplete: (data: IntakeFormData) => void;
 }
 
 export default function Intake({ onComplete }: IntakePageProps) {
   const navigate = useNavigate();
 
-  const handleComplete = (result: AssessmentResult) => {
-    onComplete(result);
+  const handleComplete = (data: IntakeFormData) => {
+    onComplete(data);
     navigate('/dashboard');
   };
 

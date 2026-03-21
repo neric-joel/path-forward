@@ -1,19 +1,38 @@
-import type { IntakeFormData, AssessmentResult } from './types';
-import { SYSTEM_PROMPT } from './prompt';
-import { DEMO_RESULT } from './demo-data';
+import type {
+  IntakeFormData,
+  OverviewResult,
+  FinancialAidResult,
+  SchoolMatchResult,
+  ActionPlanResult,
+  RoadmapResult,
+} from './types';
+import { buildOverviewPrompt } from './prompts/overview-prompt';
+import { buildFinancialPrompt } from './prompts/financial-prompt';
+import { buildSchoolsPrompt } from './prompts/schools-prompt';
+import { buildActionPlanPrompt } from './prompts/action-plan-prompt';
+import { buildRoadmapPrompt } from './prompts/roadmap-prompt';
+import {
+  DEMO_RESULT,
+  DEMO_OVERVIEW,
+  DEMO_FINANCIAL,
+  DEMO_SCHOOLS,
+  DEMO_ACTION_PLAN,
+  DEMO_ROADMAP,
+} from './demo-data';
 
 const API_URL = 'https://api.anthropic.com/v1/messages';
 const MODEL = 'claude-sonnet-4-20250514';
-const MAX_TOKENS = 12000; // V2 schema (school_matches + semester_roadmap + action_plan) needs headroom
-const MAX_RETRIES = 0;    // 0 retries — V2 response is large, no time to retry
-const FETCH_TIMEOUT_MS = 120_000; // 2 min — V2 schema with 12k tokens takes time
+const FETCH_TIMEOUT_MS = 45_000; // per-section calls are small — 45s is plenty
 
-// ─── Core API Call ──────────────────────────────────────────────────────────
+// ─── Core Fetch ──────────────────────────────────────────────────────────────
 
-async function fetchWithRetry(
+async function callAPI(
+  systemPrompt: string,
   intakeData: IntakeFormData,
-  attempt: number = 0
+  maxTokens: number
 ): Promise<string> {
+  const apiKey = import.meta.env.VITE_CLAUDE_API_KEY;
+
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
@@ -23,14 +42,14 @@ async function fetchWithRetry(
       signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': import.meta.env.VITE_CLAUDE_API_KEY,
+        'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
         'anthropic-dangerous-direct-browser-access': 'true',
       },
       body: JSON.stringify({
         model: MODEL,
-        max_tokens: MAX_TOKENS,
-        system: SYSTEM_PROMPT,
+        max_tokens: maxTokens,
+        system: systemPrompt,
         messages: [{ role: 'user', content: JSON.stringify(intakeData) }],
       }),
     });
@@ -40,26 +59,18 @@ async function fetchWithRetry(
     if (!response.ok) {
       const errorBody = await response.text();
       console.warn(`[Vazhi] API HTTP ${response.status}:`, errorBody.slice(0, 200));
-      throw new Error(`Claude API error ${response.status}: ${errorBody}`);
+      throw new Error(`Claude API error ${response.status}`);
     }
 
     const data = await response.json();
     return data.content[0].text as string;
   } catch (error) {
     clearTimeout(timeoutId);
-    if (attempt < MAX_RETRIES) {
-      const delay = Math.pow(2, attempt) * 1000;
-      console.warn(`[Vazhi] Attempt ${attempt + 1} failed, retrying in ${delay}ms:`, error);
-      await new Promise(resolve => setTimeout(resolve, delay));
-      return fetchWithRetry(intakeData, attempt + 1);
-    }
     throw error;
   }
 }
 
-function parseClaudeResponse(raw: string): AssessmentResult {
-  console.log('[Vazhi] Raw response length:', raw.length, '| Last char:', raw.at(-1));
-
+function parseJSON<T>(raw: string, section: string): T {
   const cleaned = raw
     .replace(/^```json\s*/i, '')
     .replace(/^```\s*/i, '')
@@ -67,40 +78,112 @@ function parseClaudeResponse(raw: string): AssessmentResult {
     .trim();
 
   if (!cleaned.endsWith('}')) {
-    console.warn('[Vazhi] Response may be truncated — does not end with }. Last 100 chars:', cleaned.slice(-100));
+    console.warn(`[Vazhi] ${section}: response may be truncated. Last 80 chars:`, cleaned.slice(-80));
   }
 
   try {
-    return JSON.parse(cleaned) as AssessmentResult;
-  } catch (parseError) {
-    console.error('[Vazhi] JSON.parse failed:', parseError);
-    console.error('[Vazhi] First 500 chars of response:', cleaned.slice(0, 500));
-    console.error('[Vazhi] Last 200 chars of response:', cleaned.slice(-200));
-    throw parseError;
+    return JSON.parse(cleaned) as T;
+  } catch (err) {
+    console.error(`[Vazhi] ${section}: JSON.parse failed.`, err);
+    console.error(`[Vazhi] ${section}: First 300 chars:`, cleaned.slice(0, 300));
+    throw err;
   }
 }
 
-// ─── Public API ─────────────────────────────────────────────────────────────
+function hasApiKey(): boolean {
+  const key = import.meta.env.VITE_CLAUDE_API_KEY;
+  return Boolean(key && key !== 'your_key_here' && key.trim() !== '');
+}
 
-export async function callClaudeAPI(
-  intakeData: IntakeFormData
-): Promise<AssessmentResult> {
-  const apiKey = import.meta.env.VITE_CLAUDE_API_KEY;
+// ─── Public Section Functions ────────────────────────────────────────────────
 
-  if (!apiKey || apiKey === 'your_key_here' || apiKey.trim() === '') {
-    console.warn('[Vazhi] No API key set — using demo fallback.');
-    return DEMO_RESULT;
+/** Tab 1 — auto-fires on intake submit. Returns scores + slim programs + key_insight. */
+export async function fetchOverview(intakeData: IntakeFormData): Promise<OverviewResult> {
+  if (!hasApiKey()) {
+    console.warn('[Vazhi] No API key — overview demo fallback.');
+    return DEMO_OVERVIEW;
   }
-
   try {
-    const rawText = await fetchWithRetry(intakeData);
-    const result = parseClaudeResponse(rawText);
-    console.log('[Vazhi] API call succeeded.');
+    const raw = await callAPI(buildOverviewPrompt(), intakeData, 2500);
+    const result = parseJSON<OverviewResult>(raw, 'Overview');
+    console.log('[Vazhi] Overview succeeded.');
     return result;
-  } catch (error) {
-    console.error('[Vazhi] Claude API failed — using demo fallback:', error);
-    return DEMO_RESULT;
+  } catch (err) {
+    console.error('[Vazhi] Overview failed — demo fallback:', err);
+    return DEMO_OVERVIEW;
   }
 }
 
+/** Tab 2 — on-demand. Returns full matched_programs with all fields. */
+export async function fetchFinancialAid(intakeData: IntakeFormData): Promise<FinancialAidResult> {
+  if (!hasApiKey()) {
+    console.warn('[Vazhi] No API key — financial demo fallback.');
+    return DEMO_FINANCIAL;
+  }
+  try {
+    const raw = await callAPI(buildFinancialPrompt(), intakeData, 2000);
+    const result = parseJSON<FinancialAidResult>(raw, 'FinancialAid');
+    console.log('[Vazhi] FinancialAid succeeded.');
+    return result;
+  } catch (err) {
+    console.error('[Vazhi] FinancialAid failed — demo fallback:', err);
+    return DEMO_FINANCIAL;
+  }
+}
+
+/** Tab 3 — on-demand. Returns top 3 school matches with cost breakdowns. */
+export async function fetchSchoolMatches(intakeData: IntakeFormData): Promise<SchoolMatchResult> {
+  if (!hasApiKey()) {
+    console.warn('[Vazhi] No API key — schools demo fallback.');
+    return DEMO_SCHOOLS;
+  }
+  try {
+    const raw = await callAPI(buildSchoolsPrompt(), intakeData, 4000);
+    const result = parseJSON<SchoolMatchResult>(raw, 'Schools');
+    console.log('[Vazhi] Schools succeeded.');
+    return result;
+  } catch (err) {
+    console.error('[Vazhi] Schools failed — demo fallback:', err);
+    return DEMO_SCHOOLS;
+  }
+}
+
+/** Tab 4 — on-demand. Returns sequenced action plan + score deltas. */
+export async function fetchActionPlan(intakeData: IntakeFormData): Promise<ActionPlanResult> {
+  if (!hasApiKey()) {
+    console.warn('[Vazhi] No API key — action plan demo fallback.');
+    return DEMO_ACTION_PLAN;
+  }
+  try {
+    const raw = await callAPI(buildActionPlanPrompt(), intakeData, 3000);
+    const result = parseJSON<ActionPlanResult>(raw, 'ActionPlan');
+    console.log('[Vazhi] ActionPlan succeeded.');
+    return result;
+  } catch (err) {
+    console.error('[Vazhi] ActionPlan failed — demo fallback:', err);
+    return DEMO_ACTION_PLAN;
+  }
+}
+
+/** Tab 5 — on-demand. Requires topSchoolId from schoolResult. */
+export async function fetchRoadmap(
+  intakeData: IntakeFormData,
+  topSchoolId: string
+): Promise<RoadmapResult> {
+  if (!hasApiKey()) {
+    console.warn('[Vazhi] No API key — roadmap demo fallback.');
+    return DEMO_ROADMAP;
+  }
+  try {
+    const raw = await callAPI(buildRoadmapPrompt(topSchoolId), intakeData, 3000);
+    const result = parseJSON<RoadmapResult>(raw, 'Roadmap');
+    console.log('[Vazhi] Roadmap succeeded.');
+    return result;
+  } catch (err) {
+    console.error('[Vazhi] Roadmap failed — demo fallback:', err);
+    return DEMO_ROADMAP;
+  }
+}
+
+// ─── Legacy export (used by pdf-export.ts) ───────────────────────────────────
 export { DEMO_RESULT };

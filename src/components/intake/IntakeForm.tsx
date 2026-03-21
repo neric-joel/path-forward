@@ -1,6 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
-import type { IntakeFormData, AssessmentResult } from '../../lib/types';
-import { callClaudeAPI, DEMO_RESULT } from '../../lib/claude';
+import { useState } from 'react';
+import type { IntakeFormData } from '../../lib/types';
 import { StepIndicator } from './StepIndicator';
 import { AgeStateField } from './fields/AgeStateField';
 import { EducationGoalField } from './fields/EducationGoalField';
@@ -8,10 +7,9 @@ import { TimelineField } from './fields/TimelineField';
 import { DocumentsField } from './fields/DocumentsField';
 import { BenefitsField } from './fields/BenefitsField';
 import { IntakeReview } from './IntakeReview';
-import { LoadingSkeleton } from '../shared/LoadingSkeleton';
 
 interface IntakeFormProps {
-  onComplete: (result: AssessmentResult) => void;
+  onComplete: (data: IntakeFormData) => void;
 }
 
 const TOTAL_STEPS = 6; // 5 fields + 1 review
@@ -41,13 +39,6 @@ function canAdvance(step: number, data: IntakeFormData): boolean {
 export function IntakeForm({ onComplete }: IntakeFormProps) {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<IntakeFormData>(EMPTY_FORM);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const mountedRef = useRef(true);
-
-  useEffect(() => {
-    return () => { mountedRef.current = false; };
-  }, []);
 
   const handleNext = () => {
     if (step < TOTAL_STEPS) setStep(s => s + 1);
@@ -57,33 +48,10 @@ export function IntakeForm({ onComplete }: IntakeFormProps) {
     if (step > 1) setStep(s => s - 1);
   };
 
-  const handleSubmit = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    // Safety net: if everything hangs past 95s, fall back to demo data
-    const safetyTimer = setTimeout(() => {
-      if (mountedRef.current) {
-        setIsLoading(false);
-        setError('Taking too long — showing demo data instead.');
-      }
-      onComplete(DEMO_RESULT);
-    }, 150_000);
-
-    try {
-      const result = await callClaudeAPI(formData);
-      clearTimeout(safetyTimer);
-      onComplete(result);
-    } catch {
-      clearTimeout(safetyTimer);
-      onComplete(DEMO_RESULT);
-    } finally {
-      clearTimeout(safetyTimer);
-      if (mountedRef.current) setIsLoading(false);
-    }
+  // V3: no API call here — just pass data up. OverviewTab fires the first API call.
+  const handleSubmit = () => {
+    onComplete(formData);
   };
-
-  if (isLoading) return <LoadingSkeleton />;
 
   return (
     <div className="min-h-screen bg-[#FAFAF7] flex flex-col">
@@ -147,11 +115,6 @@ export function IntakeForm({ onComplete }: IntakeFormProps) {
             />
           )}
 
-          {error && (
-            <div className="mt-4 p-3 rounded-xl bg-orange-50 border border-orange-200">
-              <p className="text-xs text-[#D85A30]">{error}</p>
-            </div>
-          )}
         </div>
       </div>
 
