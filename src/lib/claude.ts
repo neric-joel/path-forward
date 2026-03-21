@@ -4,12 +4,11 @@ import { DEMO_RESULT } from './demo-data';
 
 const API_URL = 'https://api.anthropic.com/v1/messages';
 const MODEL = 'claude-sonnet-4-20250514';
-const MAX_TOKENS = 8000;
-const MAX_RETRIES = 2;
+const MAX_TOKENS = 12000; // V2 schema (school_matches + semester_roadmap + action_plan) needs headroom
+const MAX_RETRIES = 1;    // 1 retry — users shouldn't wait 6s+ on a dead key
+const FETCH_TIMEOUT_MS = 30_000;
 
 // ─── Core API Call ──────────────────────────────────────────────────────────
-
-const FETCH_TIMEOUT_MS = 30_000; // 30s per attempt
 
 async function fetchWithRetry(
   intakeData: IntakeFormData,
@@ -40,6 +39,7 @@ async function fetchWithRetry(
 
     if (!response.ok) {
       const errorBody = await response.text();
+      console.warn(`[Vazhi] API HTTP ${response.status}:`, errorBody.slice(0, 200));
       throw new Error(`Claude API error ${response.status}: ${errorBody}`);
     }
 
@@ -48,7 +48,8 @@ async function fetchWithRetry(
   } catch (error) {
     clearTimeout(timeoutId);
     if (attempt < MAX_RETRIES) {
-      const delay = Math.pow(2, attempt) * 1000; // 1s, 2s
+      const delay = Math.pow(2, attempt) * 1000;
+      console.warn(`[Vazhi] Attempt ${attempt + 1} failed, retrying in ${delay}ms:`, error);
       await new Promise(resolve => setTimeout(resolve, delay));
       return fetchWithRetry(intakeData, attempt + 1);
     }
@@ -57,14 +58,26 @@ async function fetchWithRetry(
 }
 
 function parseClaudeResponse(raw: string): AssessmentResult {
-  // Strip accidental markdown fences
+  console.log('[Vazhi] Raw response length:', raw.length, '| Last char:', raw.at(-1));
+
   const cleaned = raw
     .replace(/^```json\s*/i, '')
     .replace(/^```\s*/i, '')
     .replace(/\s*```$/i, '')
     .trim();
 
-  return JSON.parse(cleaned) as AssessmentResult;
+  if (!cleaned.endsWith('}')) {
+    console.warn('[Vazhi] Response may be truncated — does not end with }. Last 100 chars:', cleaned.slice(-100));
+  }
+
+  try {
+    return JSON.parse(cleaned) as AssessmentResult;
+  } catch (parseError) {
+    console.error('[Vazhi] JSON.parse failed:', parseError);
+    console.error('[Vazhi] First 500 chars of response:', cleaned.slice(0, 500));
+    console.error('[Vazhi] Last 200 chars of response:', cleaned.slice(-200));
+    throw parseError;
+  }
 }
 
 // ─── Public API ─────────────────────────────────────────────────────────────
@@ -82,6 +95,7 @@ export async function callClaudeAPI(
   try {
     const rawText = await fetchWithRetry(intakeData);
     const result = parseClaudeResponse(rawText);
+    console.log('[Vazhi] API call succeeded.');
     return result;
   } catch (error) {
     console.error('[Vazhi] Claude API failed — using demo fallback:', error);

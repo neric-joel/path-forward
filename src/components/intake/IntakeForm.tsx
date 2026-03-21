@@ -21,7 +21,7 @@ const EMPTY_FORM: IntakeFormData = {
   age: 0,
   state: 'Arizona',
   educationGoal: '',
-  timeline: 'just_aged_out',
+  timeline: '' as IntakeFormData['timeline'], // No pre-selection — user must choose
   documents: [],
   benefitsApplied: [],
 };
@@ -30,7 +30,7 @@ function canAdvance(step: number, data: IntakeFormData): boolean {
   switch (step) {
     case 1: return data.age >= 14 && data.age <= 30 && data.state !== '';
     case 2: return data.educationGoal !== '';
-    case 3: return !!data.timeline;
+    case 3: return (data.timeline as string) !== '';
     case 4: return true; // documents are optional
     case 5: return true; // benefits are optional
     case 6: return true;
