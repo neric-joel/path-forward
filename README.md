@@ -94,7 +94,7 @@ Shows a SectionIntro card first ("Show My Funding Details" button). Fires the fu
 
 ### Tab 3 — Schools (on-demand)
 
-Shows a SectionIntro first ("Show My School Matches" button). Fires the schools API call on click.
+Shows optional contextual questions first (location in Arizona, school priorities multiselect, transportation access), then a "Find My School Matches" button. Fires the schools API call on click.
 
 **What it returns:** Top 3 Arizona school matches, each with:
 - **Fit label** — `Strong match` / `Good match` / `Worth exploring` (never raw scores — prevents false precision)
@@ -120,7 +120,7 @@ Mesa Community College, Arizona State University (ASU), University of Arizona, M
 
 ### Tab 4 — Action Plan (on-demand)
 
-Shows a SectionIntro first ("Build My Action Plan" button). Fires the action plan API call on click.
+Shows optional contextual questions (caseworker status, housing situation, income status — sensitive fields marked private, never echoed in output), then a "Build My Action Plan" button. Fires the action plan API call on click.
 
 **What it returns:** A sequenced list of steps, each with:
 - **Title + why this is next** — explains the dependency chain ("Do this before FAFSA because FAFSA requires a valid SSN card")
@@ -149,9 +149,11 @@ Shows a SectionIntro first ("Build My Action Plan" button). Fires the action pla
 
 ### Tab 5 — Roadmap (on-demand, gated)
 
-**Gated:** The Roadmap tab is disabled until Tab 3 (Schools) has been generated. It needs the top school match to build a semester-specific timeline.
+**Gated:** The Roadmap tab is disabled until Tab 3 (Schools) has been generated. It needs a school to build a semester-specific timeline.
 
-Once schools are generated, shows a SectionIntro with the top school name pre-filled ("Build My Roadmap at [School Name]" button). Fires the roadmap API call on click.
+Once schools are generated, shows a **school picker** — radio-style cards for each matched school with fit label badge. User selects which school to roadmap for (defaults to top match). Optional questions (full-time vs part-time, on/off campus preference) refine the output. CTA shows the selected school name: "Build My Roadmap for [School Name] →"
+
+A "Try a different school" link resets the roadmap result so the user can pick again. Fires the roadmap API call on click.
 
 **What it returns:** A phased semester timeline:
 - **Recommended start date** — based on timeline field + next enrollment window
@@ -164,11 +166,13 @@ Once schools are generated, shows a SectionIntro with the top school name pre-fi
 
 **Each task includes:**
 - What + why
-- Deadline (if any)
+- Deadline (if any) — amber left border on deadline tasks for urgency scanning
 - Dependencies (what must happen first)
 - Estimated time
 - Help from (specific contact/office)
 - Category tag: `financial` / `academic` / `housing` / `administrative` / `support`
+
+**Phase visual identity:** Each phase type has its own color and icon — 🧭 Preparation (amber), 📖 Active Semester (teal), ☀️ Summer (sky blue), 🎓 Graduation (gold). Phases are connected by a dashed vertical timeline path.
 
 ---
 
@@ -212,12 +216,12 @@ Every Claude API call is governed by 8 hard-coded safeguards that override all o
 | Frontend | React 18 + TypeScript + Vite |
 | Styling | Tailwind CSS |
 | Routing | React Router v6 (`useSearchParams` for tab routing) |
-| AI | Claude API (`claude-sonnet-4-20250514`) — client-side direct browser calls |
+| AI | Claude API (`claude-sonnet-4-20250514`) via Vercel serverless proxy (`api/assess.ts`) |
 | PDF | jsPDF |
-| Deploy | Vercel |
+| Deploy | Vercel (serverless functions + static hosting) |
 | Testing | Playwright (Python) |
 
-**No backend. No database. No auth.** Every Claude call is made directly from the browser using `anthropic-dangerous-direct-browser-access: true`. All data stays in the browser tab and is cleared on page close.
+**No database. No auth.** In production, Claude calls go through `api/assess.ts` — a Vercel serverless function that holds the API key server-side. In local development, `VITE_CLAUDE_API_KEY` in `.env` triggers direct browser calls instead. All user data stays in the browser tab and is cleared on page close.
 
 ---
 
@@ -270,6 +274,8 @@ The Arizona knowledge base (programs + schools) is embedded directly in the syst
 ## Project Structure
 
 ```
+api/
+└── assess.ts                       # Vercel serverless proxy — holds CLAUDE_API_KEY server-side
 src/
 ├── components/
 │   ├── intake/
@@ -277,14 +283,15 @@ src/
 │   │   ├── StepIndicator.tsx       # Progress bar
 │   │   └── fields/                 # AgeState, EducationGoal, Timeline, Documents, Benefits
 │   ├── dashboard/
-│   │   ├── DashboardView.tsx       # Tab routing via useSearchParams
+│   │   ├── DashboardView.tsx       # Tab routing + PDF export button
 │   │   ├── TabBar.tsx              # 5 tabs with green dot on generated tabs
+│   │   ├── TabQuestions.tsx        # Reusable contextual question forms (radio/multiselect/sensitive)
 │   │   ├── SectionIntro.tsx        # Shared CTA card for Tabs 2–5
 │   │   ├── OverviewTab.tsx         # Auto-fires fetchOverview, skeleton loading
 │   │   ├── FinancialAidTab.tsx     # On-demand, renders FinancialAidCards
-│   │   ├── SchoolsTab.tsx          # On-demand, renders SchoolMatches
-│   │   ├── ActionPlanTab.tsx       # On-demand, manages completedSteps, score deltas
-│   │   ├── RoadmapTab.tsx          # On-demand, gated on schoolResult
+│   │   ├── SchoolsTab.tsx          # On-demand + location/priorities questions
+│   │   ├── ActionPlanTab.tsx       # On-demand + housing/income questions (sensitive)
+│   │   ├── RoadmapTab.tsx          # School picker + attendance questions, gated on schoolResult
 │   │   ├── ReadinessSnapshot.tsx   # 4 ScoreRing components
 │   │   ├── ScoreRing.tsx           # Animated SVG ring
 │   │   ├── FinancialAidCards.tsx   # Program list with confidence badges
@@ -292,24 +299,24 @@ src/
 │   │   ├── SchoolMatchCard.tsx     # Cost breakdown table, foster support, housing
 │   │   ├── ActionPlan.tsx          # Checkable step list with progress bar
 │   │   ├── ActionStep.tsx          # Individual step card with delta preview
-│   │   └── SemesterRoadmap.tsx     # Phased timeline
+│   │   └── SemesterRoadmap.tsx     # Phased timeline with per-phase visual identity
 │   └── shared/
 │       ├── ConfidenceBadge.tsx     # Eligible / Likely Eligible / Verify badge
 │       ├── SourceCitation.tsx      # Source URL + verify with contact
 │       └── LoadingSkeleton.tsx     # Generic skeleton
 ├── lib/
-│   ├── claude.ts                   # 5 fetch functions + shared callAPI + parseJSON
+│   ├── claude.ts                   # Dual routing: /api/assess proxy (prod) or direct browser (dev)
 │   ├── score-engine.ts             # applyAllCompletedDeltas(), getUnlockedSteps()
-│   ├── pdf-export.ts               # PDF generation (all 5 sections)
-│   ├── types.ts                    # V3 TypeScript interfaces
+│   ├── pdf-export.ts               # PDF: cover page + 5 nullable sections + footer every page
+│   ├── types.ts                    # V3 TypeScript interfaces + SchoolPreferences/ActionPlanContext/RoadmapPreferences
 │   ├── demo-data.ts                # Per-section demo fallbacks
 │   └── prompts/
 │       ├── prompt-base.ts          # Shared persona + safeguards
 │       ├── overview-prompt.ts
 │       ├── financial-prompt.ts
-│       ├── schools-prompt.ts
-│       ├── action-plan-prompt.ts
-│       └── roadmap-prompt.ts
+│       ├── schools-prompt.ts       # Accepts SchoolPreferences context
+│       ├── action-plan-prompt.ts   # Accepts ActionPlanContext (sensitive fields)
+│       └── roadmap-prompt.ts       # Accepts RoadmapPreferences + school ID
 │   └── knowledge-base/
 │       ├── arizona.json            # AZ programs (Pell, ETV, Tuition Waiver, etc.)
 │       └── arizona-schools.json    # AZ school profiles with tuition, support, housing
@@ -337,7 +344,7 @@ If the Claude API fails during real intake (timeout, error, no API key), each ta
 # Install dependencies
 npm install
 
-# Add your Claude API key
+# Add your Claude API key (local dev only — bypasses the serverless proxy)
 echo "VITE_CLAUDE_API_KEY=your_key_here" > .env
 
 # Start dev server
@@ -346,7 +353,9 @@ npm run dev
 
 Open [http://localhost:5173](http://localhost:5173).
 
-If `VITE_CLAUDE_API_KEY` is not set or is `your_key_here`, the app falls back to demo data on every tab — the full dashboard experience works without a key.
+**How routing works locally:** If `VITE_CLAUDE_API_KEY` is set in `.env`, the app calls the Claude API directly from the browser (no serverless function needed). If it's not set, the app falls back to demo data on every tab — the full dashboard experience works without a key.
+
+**In production (Vercel):** API calls go through `api/assess.ts`. Set `CLAUDE_API_KEY` (no `VITE_` prefix) in Vercel project settings → Environment Variables.
 
 ---
 
@@ -395,7 +404,9 @@ npm run build
 git push vercel-repo main
 ```
 
-`VITE_CLAUDE_API_KEY` must be set in Vercel project settings (Settings → Environment Variables). It gets baked into the static build at deploy time.
+**Required environment variable in Vercel:** `CLAUDE_API_KEY` (server-side, no `VITE_` prefix). The serverless function in `api/assess.ts` reads this at request time — it is never exposed to the browser or baked into the build.
+
+`vercel.json` is configured so `/api/assess` routes to the serverless function and all other paths fall through to the React SPA.
 
 ---
 
@@ -413,11 +424,13 @@ Built for the **Claude AI Hackathon** (March 2026).
 |---------|-------------|
 | **Embedded knowledge base** | Full Arizona program database and school profiles embedded directly in the Claude system prompt — no vector DB, no retrieval |
 | **V3 tabbed architecture** | 5 focused API calls instead of one 22K-character monolith — eliminates truncation, reduces wait time from 2 min to 10–20s per tab |
+| **Serverless API proxy** | Claude API key lives server-side in `api/assess.ts` — never exposed to the browser or baked into the build |
+| **Contextual questions per tab** | Each tab surfaces optional mini-questions (location, priorities, housing, attendance) that refine Claude's output without blocking the user |
 | **Instant score updates** | Score deltas are pre-calculated by Claude and baked into the response — checking a step applies the delta client-side, no second API call |
 | **8 ethical safeguards** | Hard-coded guardrails in every prompt prevent false eligibility claims, discouraging language, false cost precision, and privacy violations |
 | **Trauma-informed UX** | Language designed for the target population — no shame, no blame, plain language, financial aid shown before academic requirements |
-| **PDF caseworker bridge** | Downloadable plan the user can bring to an advisor — AI generates, human advises |
-| **Zero infrastructure** | No backend, no database, no auth — runs entirely in the browser, data cleared on close |
+| **PDF caseworker bridge** | Cover page + all generated sections + footer on every page — "This is a navigation guide, not legal advice. Verify with the contacts listed." |
+| **Zero user data stored** | No database, no auth — user data stays in the browser tab and is cleared on close |
 
 ---
 
