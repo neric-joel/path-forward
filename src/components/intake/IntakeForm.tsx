@@ -68,7 +68,7 @@ export function IntakeForm({ onComplete }: IntakeFormProps) {
         setError('Taking too long — showing demo data instead.');
       }
       onComplete(DEMO_RESULT);
-    }, 95_000);
+    }, 150_000);
 
     try {
       const result = await callClaudeAPI(formData);

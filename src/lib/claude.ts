@@ -5,8 +5,8 @@ import { DEMO_RESULT } from './demo-data';
 const API_URL = 'https://api.anthropic.com/v1/messages';
 const MODEL = 'claude-sonnet-4-20250514';
 const MAX_TOKENS = 12000; // V2 schema (school_matches + semester_roadmap + action_plan) needs headroom
-const MAX_RETRIES = 1;    // 1 retry — users shouldn't wait 6s+ on a dead key
-const FETCH_TIMEOUT_MS = 30_000;
+const MAX_RETRIES = 0;    // 0 retries — V2 response is large, no time to retry
+const FETCH_TIMEOUT_MS = 120_000; // 2 min — V2 schema with 12k tokens takes time
 
 // ─── Core API Call ──────────────────────────────────────────────────────────
 
