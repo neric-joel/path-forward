@@ -3,7 +3,7 @@
   <p align="center"><strong>AI-powered college readiness for foster youth aging out of care</strong></p>
   <p align="center">
     <a href="https://pathforward-az.vercel.app">🔗 Live Demo</a> ·
-    <a href="https://youtu.be/YOUR_VIDEO_ID">🎥 Demo Video</a> ·
+    <a href="https://www.youtube.com/watch?v=9Z9AgUIAbHk&t=32s">🎥 Demo Video</a> ·
     <a href="https://github.com/neric-joel/path-forward">💻 GitHub</a>
   </p>
   <p align="center">
