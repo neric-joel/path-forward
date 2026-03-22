@@ -107,7 +107,7 @@ MIT
 
 When this skill is invoked:
 1. Pull project details from CLAUDE.md (version, features, architecture)
-2. Use the deployed URL: https://vazhii.vercel.app
-3. Use the GitHub URL: https://github.com/neric-joel/vazhi
+2. Use the deployed URL: https://pathforward-az.vercel.app
+3. Use the GitHub URL: https://github.com/neric-joel/path-forward
 4. Generate complete, submission-ready README.md
 5. Write directly to the project root README.md

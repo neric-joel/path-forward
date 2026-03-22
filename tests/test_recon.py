@@ -2,7 +2,7 @@
 """Reconnaissance: inspect the live intake form DOM structure."""
 from playwright.sync_api import sync_playwright
 
-LIVE_URL = 'https://vazhii.vercel.app'
+LIVE_URL = 'https://pathforward-az.vercel.app'
 
 def run():
     with sync_playwright() as p:

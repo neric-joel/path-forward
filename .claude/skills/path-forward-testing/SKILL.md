@@ -133,7 +133,7 @@ test('demo mode loads all tabs', async ({ page }) => {
 
 ## Environment
 - Local dev: `http://localhost:5173`
-- Production: `https://vazhii.vercel.app`
+- Production: `https://pathforward-az.vercel.app`
 - Demo mode: click "Try Demo" on landing page
 
 ## Server Setup with with_server.py

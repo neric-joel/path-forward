@@ -28,7 +28,7 @@ Path Forward is a 2-minute AI assessment that builds a personalized college read
 
 ## Live Demo
 
-**[vazhii.vercel.app](https://vazhii.vercel.app)** — Try Demo mode for an instant preview with sample data, no API key needed.
+**[pathforward-az.vercel.app](https://pathforward-az.vercel.app)** — Try Demo mode for an instant preview with sample data, no API key needed.
 
 ---
 
@@ -134,8 +134,8 @@ Browser (React + TypeScript)
 ### Installation
 
 ```bash
-git clone https://github.com/neric-joel/vazhi.git
-cd vazhi
+git clone https://github.com/neric-joel/path-forward.git
+cd path-forward
 npm install
 ```
 
@@ -226,7 +226,7 @@ MIT — free to use, adapt, and deploy for any foster youth support organization
 ---
 
 <p align="center">
-  <a href="https://vazhii.vercel.app">Live Demo</a> ·
-  <a href="https://github.com/neric-joel/vazhi">GitHub</a> ·
+  <a href="https://pathforward-az.vercel.app">Live Demo</a> ·
+  <a href="https://github.com/neric-joel/path-forward">GitHub</a> ·
   Built for foster youth in Arizona
 </p>

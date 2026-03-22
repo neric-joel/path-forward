@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Vazhi score update test on https://vazhii.vercel.app
+Vazhi score update test on https://pathforward-az.vercel.app
 Verifies that checking action steps changes scores, and unchecking reverts them.
 """
 from playwright.sync_api import sync_playwright
 
-LIVE_URL = 'https://vazhii.vercel.app'
+LIVE_URL = 'https://pathforward-az.vercel.app'
 
 def get_scores(page):
     """Extract score ring values and score bar values from the dashboard."""
@@ -196,7 +196,7 @@ def run_test():
         passed = changed and reverted
 
         if passed:
-            print("ALL TESTS PASSED -- Score updates working correctly on https://vazhii.vercel.app")
+            print("ALL TESTS PASSED -- Score updates working correctly on https://pathforward-az.vercel.app")
         else:
             if not changed:
                 print("FAIL: Scores did not change when checking a step")

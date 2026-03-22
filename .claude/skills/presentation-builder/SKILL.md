@@ -48,7 +48,7 @@ Walk through the full flow:
 ### 2:40–3:00 — Impact
 "If every foster youth in Arizona used Path Forward, that's $9.6M+ in unclaimed funding accessed each year."
 - Calculation: 800 youth × $12,000 avg unclaimed = $9.6M
-- CTA: "Try it at vazhii.vercel.app — it's free, private, and takes 2 minutes."
+- CTA: "Try it at pathforward-az.vercel.app — it's free, private, and takes 2 minutes."
 
 ---
 
@@ -57,7 +57,7 @@ Walk through the full flow:
 ### Slide 1 — Title
 - "Path Forward"
 - Tagline: "AI-powered college readiness for foster youth in Arizona"
-- vazhii.vercel.app
+- pathforward-az.vercel.app
 
 ### Slide 2 — The Problem
 - 800 Arizona foster youth age out each year

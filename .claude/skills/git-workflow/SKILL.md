@@ -6,8 +6,8 @@ description: Manage git commits, branches, and deployment for Path Forward. Use 
 # Git Workflow
 
 ## Remotes
-- `origin` → https://github.com/neric-joel/vazhi.git (source of truth)
-- `vercel-repo` → https://github.com/neric-joel/vazhii.git (Vercel deploy trigger)
+- `origin` → https://github.com/neric-joel/path-forward.git (source of truth)
+- `vercel-repo` → https://github.com/neric-joel/path-forward.git (Vercel deploy trigger)
 
 Always push to both:
 ```bash
