@@ -25,6 +25,16 @@ dist-ssr
 *.sln
 *.sw?
 
+# Internal dev tools (stay local, not in repo)
+.claude/
+CLAUDE*.md
+
+# Hackathon reference files
+*.pdf
+files/
+files.zip
+pathforward-implementation-plan.md
+
 # Claude skills reference repos (cloned, not submodules)
 .claude/community-skills/
 .claude/awesome-skills-ref/
