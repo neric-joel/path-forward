@@ -41,7 +41,7 @@ function DotRow({ active = 5, total = 40 }: { active?: number; total?: number })
           key={i}
           style={{
             width: 2, height: 2, borderRadius: '50%',
-            background: i < active ? '#0F6E56' : 'rgba(255,255,255,0.25)',
+            background: i < active ? '#0F6E56' : 'rgba(28,28,26,0.2)',
           }}
         />
       ))}
@@ -58,7 +58,7 @@ export default function HeroAscii({ onDemo }: HeroAsciiProps) {
   };
 
   return (
-    <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", background: '#080C0A', minHeight: '100vh' }}>
+    <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", background: '#F4FAF8', minHeight: '100vh' }}>
 
       {/* ── Fixed Nav ──────────────────────────────────────────────────────── */}
       <nav
@@ -66,8 +66,8 @@ export default function HeroAscii({ onDemo }: HeroAsciiProps) {
         aria-label="Main navigation"
         style={{
           position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
-          background: 'rgba(8,12,10,0.92)', backdropFilter: 'blur(10px)',
-          borderBottom: '1px solid rgba(15,110,86,0.2)',
+          background: 'rgba(244,250,248,0.92)', backdropFilter: 'blur(10px)',
+          borderBottom: '1px solid rgba(15,110,86,0.15)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '0 24px', height: 52,
         }}
@@ -79,7 +79,7 @@ export default function HeroAscii({ onDemo }: HeroAsciiProps) {
           style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}
         >
           <span aria-hidden="true" style={{ fontFamily: "'JetBrains Mono', monospace", color: '#0F6E56', fontSize: 10 }}>►</span>
-          <span style={{ fontFamily: "'JetBrains Mono', monospace", color: '#F5F3EE', fontSize: 13, fontWeight: 700, letterSpacing: '0.06em' }}>
+          <span style={{ fontFamily: "'JetBrains Mono', monospace", color: '#1C1C1A', fontSize: 13, fontWeight: 700, letterSpacing: '0.06em' }}>
             VAZHI{' '}
             <span style={{ color: '#0F6E56' }}>வழி</span>
           </span>
@@ -91,12 +91,12 @@ export default function HeroAscii({ onDemo }: HeroAsciiProps) {
             href="#how-it-works"
             style={{
               fontFamily: "'JetBrains Mono', monospace",
-              color: 'rgba(245,243,238,0.45)', fontSize: 10,
+              color: 'rgba(28,28,26,0.45)', fontSize: 10,
               letterSpacing: '0.1em', textDecoration: 'none',
               transition: 'color 0.2s',
             }}
-            onMouseEnter={e => (e.currentTarget.style.color = 'rgba(245,243,238,0.8)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(245,243,238,0.45)')}
+            onMouseEnter={e => (e.currentTarget.style.color = '#1C1C1A')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(28,28,26,0.45)')}
           >
             HOW IT WORKS
           </a>
@@ -132,13 +132,12 @@ export default function HeroAscii({ onDemo }: HeroAsciiProps) {
           <BackgroundPaths />
         </div>
 
-        {/* Gradient mask (desktop: darkens left side so text is readable) */}
+        {/* Subtle light fade on left so text pops cleanly over paths */}
         <div
-          className="hidden lg:block"
           aria-hidden="true"
           style={{
             position: 'absolute', inset: 0,
-            background: 'linear-gradient(105deg, #080C0A 42%, rgba(8,12,10,0.72) 68%, rgba(8,12,10,0.15) 100%)',
+            background: 'linear-gradient(105deg, rgba(244,250,248,0.85) 35%, rgba(244,250,248,0.4) 65%, rgba(244,250,248,0.05) 100%)',
           }}
         />
 
@@ -161,7 +160,7 @@ export default function HeroAscii({ onDemo }: HeroAsciiProps) {
             className="hero-line-1"
             style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}
           >
-            <div style={{ width: 8, height: 1, background: '#F5F3EE', opacity: 0.6 }} aria-hidden="true" />
+            <div style={{ width: 8, height: 1, background: '#1C1C1A', opacity: 0.3 }} aria-hidden="true" />
             <span style={{ fontFamily: "'JetBrains Mono', monospace", color: '#0F6E56', fontSize: 10, letterSpacing: '0.2em', fontWeight: 700 }}>
               001
             </span>
@@ -178,7 +177,7 @@ export default function HeroAscii({ onDemo }: HeroAsciiProps) {
               className="hero-line-2"
               style={{
                 fontFamily: "'JetBrains Mono', monospace",
-                color: '#F5F3EE',
+                color: '#1C1C1A',
                 fontSize: 'clamp(36px, 6vw, 80px)',
                 fontWeight: 700,
                 lineHeight: 1.05,
@@ -217,7 +216,7 @@ export default function HeroAscii({ onDemo }: HeroAsciiProps) {
             className="hero-line-5"
             style={{
               fontFamily: "'JetBrains Mono', monospace",
-              color: 'rgba(245,243,238,0.55)',
+              color: 'rgba(28,28,26,0.55)',
               fontSize: 'clamp(12px, 1.5vw, 15px)',
               lineHeight: 1.8,
               maxWidth: 420,
