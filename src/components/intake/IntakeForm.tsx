@@ -84,7 +84,10 @@ export function IntakeForm({ onComplete }: IntakeFormProps) {
           {step === 2 && (
             <EducationGoalField
               value={formData.educationGoal}
-              onChange={educationGoal => setFormData(d => ({ ...d, educationGoal }))}
+              onChange={educationGoal => {
+                setFormData(d => ({ ...d, educationGoal }));
+                setTimeout(() => setStep(s => Math.min(s + 1, TOTAL_STEPS)), 350);
+              }}
             />
           )}
 

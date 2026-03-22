@@ -212,6 +212,75 @@ body {
   background-size: 200% 200%, 180% 180%, 250% 250%, 220% 220%, 190% 190%, 240% 240%, 210% 210%, 230% 230%;
 }
 
+/* ── 3D Loading Ring ─────────────────────────────────────────────────────── */
+
+.loading-ring-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  width: 190px;
+  height: 190px;
+}
+
+.loading-ring {
+  width: 190px;
+  height: 190px;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  position: absolute;
+}
+
+.loading-ring:nth-child(1) {
+  border-bottom: 8px solid #0F6E56;
+  animation: rotate1 2s linear infinite;
+}
+
+.loading-ring:nth-child(2) {
+  border-bottom: 8px solid #BA7517;
+  animation: rotate2 2s linear infinite;
+}
+
+.loading-ring:nth-child(3) {
+  border-bottom: 8px solid #3B6D11;
+  animation: rotate3 2s linear infinite;
+}
+
+.loading-ring:nth-child(4) {
+  border-bottom: 8px solid #5C6B63;
+  animation: rotate4 2s linear infinite;
+}
+
+@keyframes rotate1 {
+  from { transform: rotateX(50deg) rotateZ(110deg); }
+  to   { transform: rotateX(50deg) rotateZ(470deg); }
+}
+@keyframes rotate2 {
+  from { transform: rotateX(20deg) rotateY(50deg) rotateZ(20deg); }
+  to   { transform: rotateX(20deg) rotateY(50deg) rotateZ(380deg); }
+}
+@keyframes rotate3 {
+  from { transform: rotateX(40deg) rotateY(130deg) rotateZ(450deg); }
+  to   { transform: rotateX(40deg) rotateY(130deg) rotateZ(90deg); }
+}
+@keyframes rotate4 {
+  from { transform: rotateX(70deg) rotateZ(270deg); }
+  to   { transform: rotateX(70deg) rotateZ(630deg); }
+}
+
+@keyframes topLoadingBar {
+  0%   { width: 0%; }
+  30%  { width: 40%; }
+  60%  { width: 70%; }
+  85%  { width: 88%; }
+  100% { width: 92%; }
+}
+
+@keyframes stepFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 /* Dither side-bar pattern (decorative, desktop only) */
 .dither-pattern {
   background-image:

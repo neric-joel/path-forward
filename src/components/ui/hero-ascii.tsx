@@ -42,9 +42,9 @@ export default function HeroAscii({ onDemo }: HeroAsciiProps) {
             style={{
               fontFamily: DISPLAY,
               color: '#1A2A22',
-              fontSize: 18,
+              fontSize: 22,
               fontWeight: 700,
-              letterSpacing: '-0.01em',
+              letterSpacing: '-0.02em',
             }}
           >
             Path <span style={{ color: '#0F6E56' }}>Forward</span>

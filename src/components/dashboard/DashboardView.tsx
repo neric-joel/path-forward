@@ -1,6 +1,7 @@
 
-import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
+import { AnalyzingScreen } from '../shared/AnalyzingScreen';
 import type {
   IntakeFormData,
   OverviewResult,
@@ -50,7 +51,17 @@ export function DashboardView({
 }: DashboardViewProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [isExporting, setIsExporting] = useState(false);
+  const [showAnalyzing, setShowAnalyzing] = useState(!isDemo);
+  const [fadingOut, setFadingOut] = useState(false);
   const activeTab = (searchParams.get('tab') as TabId) || 'overview';
+
+  useEffect(() => {
+    if (overviewResult && showAnalyzing) {
+      setFadingOut(true);
+      const t = setTimeout(() => setShowAnalyzing(false), 400);
+      return () => clearTimeout(t);
+    }
+  }, [overviewResult, showAnalyzing]);
 
   const handleTabChange = (tab: TabId) => {
     setSearchParams({ tab });
@@ -72,18 +83,44 @@ export function DashboardView({
 
   return (
     <div className="min-h-screen bg-[#FAFAF7]">
+      {/* Analyzing overlay */}
+      {showAnalyzing && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, zIndex: 100,
+            opacity: fadingOut ? 0 : 1,
+            transition: 'opacity 400ms ease',
+            pointerEvents: fadingOut ? 'none' : 'auto',
+          }}
+        >
+          <AnalyzingScreen />
+        </div>
+      )}
+
       {/* Header */}
       <div className="bg-white border-b border-[#E2DED6] sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div>
+          <Link
+            to="/"
+            aria-label="Path Forward home"
+            style={{ textDecoration: 'none', cursor: 'pointer' }}
+            onMouseEnter={e => {
+              const el = e.currentTarget.querySelector('.logo-text') as HTMLElement | null;
+              if (el) el.style.color = '#0F6E56';
+            }}
+            onMouseLeave={e => {
+              const el = e.currentTarget.querySelector('.logo-text') as HTMLElement | null;
+              if (el) el.style.color = '#1A2A22';
+            }}
+          >
             <p
-              className="font-bold text-[#1A2A22] text-sm tracking-tight"
-              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+              className="logo-text font-bold text-[#1A2A22] tracking-tight transition-colors"
+              style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 20, margin: 0 }}
             >
-              Path <span className="text-[#0F6E56]">Forward</span>
+              Path <span style={{ color: '#0F6E56' }}>Forward</span>
             </p>
-            <p className="text-xs text-[#5C6B63]" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>Your college readiness plan</p>
-          </div>
+            <p className="text-xs text-[#5C6B63]" style={{ fontFamily: "'Inter', system-ui, sans-serif", margin: 0 }}>Your college readiness plan</p>
+          </Link>
           <button
             onClick={onStartOver}
             className="text-xs text-[#6B6A65] hover:text-[#1C1C1A] transition-colors px-2 py-1.5 min-h-[36px]"
