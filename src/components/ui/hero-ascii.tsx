@@ -276,9 +276,7 @@ export default function HeroAscii({ onDemo }: HeroAsciiProps) {
 
           {/* Section label */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-            <span style={{ fontFamily: MONO, color: '#0F6E56', fontSize: 11, letterSpacing: '0.2em' }}>002</span>
-            <div style={{ width: 36, height: 1, background: 'rgba(15,110,86,0.35)' }} aria-hidden="true" />
-            <span style={{ fontFamily: MONO, color: 'rgba(15,110,86,0.45)', fontSize: 10, letterSpacing: '0.16em' }}>PROCESS.MAP</span>
+
           </div>
 
           <h2
