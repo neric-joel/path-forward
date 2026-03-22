@@ -1,225 +1,512 @@
 import { useNavigate, Link } from 'react-router-dom';
-import { useEffect, useRef } from 'react';
 
 interface HomeProps {
   onDemo?: () => void;
 }
 
+// ── Blueprint background SVG ─────────────────────────────────────────────────
+function BlueprintBg() {
+  return (
+    <svg
+      viewBox="0 0 1440 900"
+      aria-hidden="true"
+      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+      preserveAspectRatio="xMidYMid slice"
+    >
+      <defs>
+        {/* Fine grid */}
+        <pattern id="vz-grid-sm" width="48" height="48" patternUnits="userSpaceOnUse">
+          <path d="M 48 0 L 0 0 0 48" fill="none" stroke="#0F6E56" strokeWidth="0.4" strokeOpacity="0.09" />
+        </pattern>
+        {/* Major grid */}
+        <pattern id="vz-grid-lg" width="240" height="240" patternUnits="userSpaceOnUse">
+          <path d="M 240 0 L 0 0 0 240" fill="none" stroke="#0F6E56" strokeWidth="0.8" strokeOpacity="0.06" />
+        </pattern>
+      </defs>
+
+      {/* Grids */}
+      <rect width="1440" height="900" fill="url(#vz-grid-sm)" />
+      <rect width="1440" height="900" fill="url(#vz-grid-lg)" />
+
+      {/* Concentric circles — centered right, like a radar */}
+      {[70, 140, 220, 310, 415, 535, 670, 820, 990].map((r, i) => (
+        <circle
+          key={r}
+          cx="1080"
+          cy="450"
+          r={r}
+          fill="none"
+          stroke="#0F6E56"
+          strokeWidth="0.7"
+          strokeOpacity={Math.max(0.03, 0.1 - i * 0.009)}
+        />
+      ))}
+
+      {/* Crosshair at focal point */}
+      <line x1="1080" y1="390" x2="1080" y2="510" stroke="#0F6E56" strokeWidth="0.8" strokeOpacity="0.18" />
+      <line x1="1020" y1="450" x2="1140" y2="450" stroke="#0F6E56" strokeWidth="0.8" strokeOpacity="0.18" />
+      <circle cx="1080" cy="450" r="4" fill="none" stroke="#0F6E56" strokeWidth="1" strokeOpacity="0.35" />
+      <circle cx="1080" cy="450" r="1.5" fill="#0F6E56" fillOpacity="0.5" />
+
+      {/* Tick marks on crosshair */}
+      {[-3, -2, -1, 1, 2, 3].map(n => (
+        <g key={n}>
+          <line x1={1080 + n * 35} y1="445" x2={1080 + n * 35} y2="455" stroke="#0F6E56" strokeWidth="0.5" strokeOpacity="0.2" />
+          <line x1="1075" y1={450 + n * 35} x2="1085" y2={450 + n * 35} stroke="#0F6E56" strokeWidth="0.5" strokeOpacity="0.2" />
+        </g>
+      ))}
+
+      {/* Diagonal data line — decorative */}
+      <line x1="200" y1="700" x2="900" y2="200" stroke="#0F6E56" strokeWidth="0.5" strokeOpacity="0.06" strokeDasharray="6 10" />
+
+      {/* Small annotation boxes */}
+      <rect x="1120" y="310" width="52" height="16" fill="none" stroke="#0F6E56" strokeWidth="0.5" strokeOpacity="0.2" />
+      <rect x="960" y="554" width="52" height="16" fill="none" stroke="#0F6E56" strokeWidth="0.5" strokeOpacity="0.15" />
+    </svg>
+  );
+}
+
+// ── Corner frame accent ──────────────────────────────────────────────────────
+function CornerFrame({
+  top, bottom, left, right, opacity = 0.5,
+}: {
+  top?: string; bottom?: string; left?: string; right?: string; opacity?: number;
+}) {
+  const style: React.CSSProperties = {
+    position: 'absolute',
+    width: 36,
+    height: 36,
+    borderColor: `rgba(15,110,86,${opacity})`,
+    borderStyle: 'solid',
+    borderWidth: 0,
+    ...(top !== undefined && { top }),
+    ...(bottom !== undefined && { bottom }),
+    ...(left !== undefined && { left }),
+    ...(right !== undefined && { right }),
+    ...(top !== undefined && left !== undefined && { borderTopWidth: '1.5px', borderLeftWidth: '1.5px' }),
+    ...(top !== undefined && right !== undefined && { borderTopWidth: '1.5px', borderRightWidth: '1.5px' }),
+    ...(bottom !== undefined && left !== undefined && { borderBottomWidth: '1.5px', borderLeftWidth: '1.5px' }),
+    ...(bottom !== undefined && right !== undefined && { borderBottomWidth: '1.5px', borderRightWidth: '1.5px' }),
+  };
+  return <div style={style} aria-hidden="true" />;
+}
+
+// ── Dot separator ────────────────────────────────────────────────────────────
+function DotSeparator({ active = 5, total = 14 }: { active?: number; total?: number }) {
+  return (
+    <div style={{ display: 'flex', gap: 6, marginBottom: 28 }} aria-hidden="true">
+      {Array.from({ length: total }).map((_, i) => (
+        <div
+          key={i}
+          style={{
+            width: 4, height: 4, borderRadius: '50%',
+            background: i < active ? '#0F6E56' : 'rgba(15,110,86,0.2)',
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ── Mono label ───────────────────────────────────────────────────────────────
+function MonoLabel({ num, code }: { num: string; code: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+      <span style={{ fontFamily: "'JetBrains Mono', monospace", color: '#0F6E56', fontSize: 11, letterSpacing: '0.2em', fontWeight: 700 }}>
+        {num}
+      </span>
+      <div style={{ width: 40, height: 1, background: 'rgba(15,110,86,0.5)' }} />
+      <span style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(15,110,86,0.5)', fontSize: 10, letterSpacing: '0.16em' }}>
+        {code}
+      </span>
+    </div>
+  );
+}
+
+// ── Main component ───────────────────────────────────────────────────────────
 export default function Home({ onDemo }: HomeProps) {
   const navigate = useNavigate();
-  const heroRef = useRef<HTMLDivElement>(null);
 
-  // Parallax scroll effect on hero
-  useEffect(() => {
-    const hero = heroRef.current;
-    if (!hero) return;
-    const onScroll = () => {
-      const y = window.scrollY;
-      hero.style.backgroundPositionY = `${y * 0.4}px`;
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+  const handleDemo = () => {
+    if (onDemo) { onDemo(); navigate('/dashboard'); }
+  };
 
   return (
-    <div className="font-sans bg-[#FAFAF7] min-h-screen">
+    <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", background: '#080C0A', minHeight: '100vh' }}>
 
-      {/* ── Floating Nav Pill ──────────────────────────────────── */}
-      <nav className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-full
-                      flex items-center gap-6
-                      bg-white/10 backdrop-blur-md border border-white/20 shadow-lg
-                      transition-all duration-300">
-        <Link to="/" className="text-white font-semibold text-lg tracking-tight" style={{ fontFamily: "'DM Serif Display', serif" }}>
-          Vazhi <span className="text-[#5ecfb1]">வழி</span>
+      {/* ── Top nav bar ─────────────────────────────────────────────────────── */}
+      <nav
+        role="navigation"
+        aria-label="Main navigation"
+        style={{
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
+          background: 'rgba(8,12,10,0.92)', backdropFilter: 'blur(10px)',
+          borderBottom: '1px solid rgba(15,110,86,0.2)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0 28px', height: 52,
+        }}
+      >
+        {/* Logo */}
+        <Link
+          to="/"
+          aria-label="Vazhi home"
+          style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}
+        >
+          <span aria-hidden="true" style={{ fontFamily: "'JetBrains Mono', monospace", color: '#0F6E56', fontSize: 10 }}>►</span>
+          <span style={{ fontFamily: "'JetBrains Mono', monospace", color: '#F5F3EE', fontSize: 14, fontWeight: 700, letterSpacing: '0.06em' }}>
+            VAZHI{' '}
+            <span style={{ color: '#0F6E56' }}>வழி</span>
+          </span>
         </Link>
-        <div className="flex items-center gap-4 ml-4">
-          <a href="#how-it-works" className="text-white/80 hover:text-white text-sm font-medium transition-colors">
-            How It Works
-          </a>
-          <button
-            onClick={() => navigate('/intake')}
-            className="bg-[#BA7517] hover:bg-[#9a6012] text-white text-sm font-semibold
-                       px-4 py-1.5 rounded-full transition-colors shadow-sm"
-          >
-            Get Started
-          </button>
+
+        {/* Metadata right */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+          <span style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(245,243,238,0.3)', fontSize: 10, letterSpacing: '0.14em' }}>
+            PHOENIX, AZ
+          </span>
+          <span
+            aria-hidden="true"
+            style={{ width: 1, height: 14, background: 'rgba(15,110,86,0.25)' }}
+          />
+          <span style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(245,243,238,0.3)', fontSize: 10, letterSpacing: '0.14em' }}>
+            EST. 2026
+          </span>
+          <span
+            aria-hidden="true"
+            style={{ width: 1, height: 14, background: 'rgba(15,110,86,0.25)' }}
+          />
+          <span style={{ fontFamily: "'JetBrains Mono', monospace", color: '#0F6E56', fontSize: 10, letterSpacing: '0.14em' }}>
+            V4.0
+          </span>
         </div>
       </nav>
 
-      {/* ── Hero Section ─────────────────────────────────────────── */}
-      <div
-        ref={heroRef}
-        className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden"
-        style={{ background: 'linear-gradient(to bottom, #0d1f0d, #0F6E56)' }}
+      {/* ── Hero section ────────────────────────────────────────────────────── */}
+      <section
+        style={{
+          position: 'relative', minHeight: '100vh',
+          display: 'flex', alignItems: 'center',
+          overflow: 'hidden', paddingTop: 52,
+        }}
       >
-        {/* Atmospheric noise overlay */}
-        <div className="absolute inset-0 opacity-[0.04]"
+        {/* Blueprint background */}
+        <div style={{ position: 'absolute', inset: 0 }}>
+          <BlueprintBg />
+        </div>
+
+        {/* Left-side dark gradient mask — reveals blueprint on right */}
+        <div
+          aria-hidden="true"
           style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-            backgroundSize: '256px 256px'
+            position: 'absolute', inset: 0,
+            background: 'linear-gradient(105deg, #080C0A 42%, rgba(8,12,10,0.72) 68%, rgba(8,12,10,0.15) 100%)',
           }}
         />
 
-        {/* Radial vignette */}
-        <div className="absolute inset-0"
-          style={{ background: 'radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.55) 100%)' }}
-        />
+        {/* Corner frame accents */}
+        <CornerFrame top="76px" left="20px" opacity={0.55} />
+        <CornerFrame top="76px" right="20px" opacity={0.25} />
+        <CornerFrame bottom="20px" left="20px" opacity={0.25} />
+        <CornerFrame bottom="20px" right="20px" opacity={0.2} />
 
-        {/* Subtle winding path SVG */}
-        <div className="absolute inset-0 overflow-hidden opacity-10">
-          <svg viewBox="0 0 800 900" className="w-full h-full" preserveAspectRatio="xMidYMid slice">
-            <path d="M 400 900 C 400 900 250 700 350 550 C 450 400 200 300 350 150 C 450 50 500 0 500 0"
-              stroke="white" strokeWidth="3" fill="none" strokeDasharray="8 12" />
-            <path d="M 400 900 C 400 900 350 700 450 550 C 550 400 300 300 450 150"
-              stroke="white" strokeWidth="1.5" fill="none" strokeDasharray="4 8" opacity="0.5" />
-          </svg>
-        </div>
+        {/* ── Hero content ────────────────────────────────────────────────── */}
+        <div
+          style={{
+            position: 'relative', zIndex: 10,
+            width: '100%', maxWidth: 1200,
+            margin: '0 auto', padding: '72px 32px',
+          }}
+        >
+          {/* Section label */}
+          <div className="hero-line-1">
+            <MonoLabel num="001" code="COLLEGE.READINESS" />
+          </div>
 
-        {/* Hero content */}
-        <div className="relative z-10 text-center px-6 max-w-3xl mx-auto">
-          <p className="text-[#5ecfb1] text-2xl mb-3 tracking-widest font-light animate-fade-in-up"
-            style={{ animationDelay: '0.1s', opacity: 0 }}>
-            வழி
-          </p>
+          {/* Headline — two lines */}
           <h1
-            className="text-white text-5xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6 animate-fade-in-up"
-            style={{ fontFamily: "'Playfair Display', serif", animationDelay: '0.25s', opacity: 0 }}
+            className="hero-line-2"
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              color: '#F5F3EE',
+              fontSize: 'clamp(38px, 6.5vw, 84px)',
+              fontWeight: 700,
+              lineHeight: 1.05,
+              letterSpacing: '-0.025em',
+              margin: '0 0 6px 0',
+            }}
           >
-            Your Path to College<br />
-            <span className="text-[#5ecfb1]">Starts Here</span>
+            YOUR PATH
           </h1>
-          <p className="text-white/75 text-lg md:text-xl max-w-xl mx-auto mb-10 leading-relaxed animate-fade-in-up"
-            style={{ animationDelay: '0.4s', opacity: 0 }}>
-            Foster youth in Arizona — discover your funding,<br className="hidden md:block" />
+          <div
+            className="hero-line-3"
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              color: '#0F6E56',
+              fontSize: 'clamp(38px, 6.5vw, 84px)',
+              fontWeight: 700,
+              lineHeight: 1.05,
+              letterSpacing: '-0.025em',
+              marginBottom: 36,
+              display: 'flex', alignItems: 'baseline', gap: 4,
+            }}
+            aria-label="STARTS HERE"
+          >
+            STARTS HERE
+            <span className="cursor-blink" aria-hidden="true" style={{ color: '#BA7517' }}>_</span>
+          </div>
+
+          {/* Dot separator */}
+          <div className="hero-line-4">
+            <DotSeparator active={5} total={14} />
+          </div>
+
+          {/* Subtitle */}
+          <p
+            className="hero-line-5"
+            style={{
+              color: 'rgba(245,243,238,0.62)',
+              fontSize: 16,
+              lineHeight: 1.75,
+              maxWidth: 440,
+              margin: '0 0 40px 0',
+            }}
+          >
+            Foster youth in Arizona — discover your funding,
+            <br />
             build your plan, find your way.
           </p>
-          <div className="flex flex-col sm:flex-row items-center gap-3 justify-center animate-fade-in-up"
-            style={{ animationDelay: '0.55s', opacity: 0 }}>
+
+          {/* CTA buttons */}
+          <div
+            className="hero-line-6"
+            style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 40 }}
+          >
             <button
+              className="btn-primary"
               onClick={() => navigate('/intake')}
-              className="bg-[#BA7517] hover:bg-[#9a6012] active:bg-[#7d4e0f]
-                         text-white text-lg font-semibold px-10 py-4 rounded-full
-                         shadow-xl hover:shadow-2xl hover:-translate-y-0.5
-                         transition-all duration-200 min-h-[52px] w-full sm:w-auto"
+              aria-label="Get my college readiness plan"
             >
-              Get My Plan →
+              GET MY PLAN →
             </button>
             <button
-              onClick={() => { if (onDemo) { onDemo(); navigate('/dashboard'); } }}
-              className="bg-white/10 hover:bg-white/20 border border-white/30
-                         text-white/90 text-base font-medium px-8 py-4 rounded-full
-                         backdrop-blur-sm hover:-translate-y-0.5
-                         transition-all duration-200 min-h-[52px] w-full sm:w-auto"
+              className="btn-secondary"
+              onClick={handleDemo}
+              aria-label="Try the demo with sample data"
             >
-              Try Demo
+              [ TRY DEMO ]
             </button>
           </div>
 
-          {/* Privacy note */}
-          <p className="text-white/40 text-xs mt-5 animate-fade-in-up"
-            style={{ animationDelay: '0.7s', opacity: 0 }}>
-            Your data stays in your browser. Nothing is stored or shared.
-          </p>
+          {/* System status line */}
+          <div
+            className="hero-line-6"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 10, color: 'rgba(15,110,86,0.5)',
+              letterSpacing: '0.14em',
+            }}
+            aria-label="Privacy: no data stored, browser only"
+          >
+            <span
+              className="status-dot"
+              aria-hidden="true"
+              style={{
+                display: 'inline-block', width: 6, height: 6, borderRadius: '50%',
+                background: '#0F6E56',
+              }}
+            />
+            PRIVACY.ACTIVE
+            <span aria-hidden="true" style={{ color: 'rgba(15,110,86,0.3)' }}>·</span>
+            NO DATA STORED
+            <span aria-hidden="true" style={{ color: 'rgba(15,110,86,0.3)' }}>·</span>
+            BROWSER ONLY
+          </div>
         </div>
 
         {/* Scroll hint */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 animate-fade-in-up"
-          style={{ animationDelay: '1s', opacity: 0 }}>
-          <p className="text-white/40 text-xs tracking-widest uppercase">Scroll to explore</p>
-          <div className="w-px h-8 bg-gradient-to-b from-white/40 to-transparent" />
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute', bottom: 28,
+            left: '50%', transform: 'translateX(-50%)',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+            animation: 'hero-enter 0.6s ease 1.2s both',
+          }}
+        >
+          <span style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(15,110,86,0.35)', fontSize: 9, letterSpacing: '0.2em' }}>
+            SCROLL
+          </span>
+          <div style={{ width: 1, height: 32, background: 'linear-gradient(to bottom, rgba(15,110,86,0.4), transparent)' }} />
         </div>
-      </div>
+      </section>
 
-      {/* ── How It Works ─────────────────────────────────────────── */}
-      <section id="how-it-works" className="bg-[#FAFAF7] py-24 px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-            <p className="text-[#0F6E56] text-sm font-semibold tracking-widest uppercase mb-3">The Process</p>
-            <h2 className="text-[#1C1C1A] text-4xl md:text-5xl font-bold leading-tight"
-              style={{ fontFamily: "'DM Serif Display', serif" }}>
-              How It Works
-            </h2>
-          </div>
+      {/* ── How It Works ────────────────────────────────────────────────────── */}
+      <section
+        id="how-it-works"
+        style={{
+          background: '#0A0E0C',
+          borderTop: '1px solid rgba(15,110,86,0.18)',
+          padding: '96px 32px',
+        }}
+      >
+        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          {/* Section label */}
+          <MonoLabel num="002" code="PROCESS.MAP" />
+          <h2
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              color: '#F5F3EE',
+              fontSize: 'clamp(26px, 4vw, 40px)',
+              fontWeight: 700, letterSpacing: '-0.02em',
+              margin: '0 0 56px 0',
+            }}
+          >
+            HOW IT WORKS
+          </h2>
+
+          {/* Step cards — separated by 1px teal lines */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(268px, 1fr))',
+              gap: 1,
+              background: 'rgba(15,110,86,0.18)',
+            }}
+          >
             {[
               {
                 num: '01',
+                code: 'INTAKE.FORM',
                 title: 'Tell Us Where You Are',
-                desc: 'Answer 5 quick questions about your situation — your age, education, and what documents you have.',
-                icon: (
-                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                )
+                desc: 'Answer 6 quick questions about your situation — age, education goal, documents in hand, and benefits you\'ve already applied for.',
               },
               {
                 num: '02',
+                code: 'FUNDING.MATCH',
                 title: 'See Your Funding',
-                desc: 'Get matched with the Pell Grant, Arizona ETV, and the Tuition Waiver — with confidence levels and exact amounts.',
-                icon: (
-                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                )
+                desc: 'Get matched with the Pell Grant ($7,395), Arizona ETV ($5,000), and the Tuition Waiver — with confidence levels and exact next steps.',
               },
               {
                 num: '03',
+                code: 'PLAN.BUILD',
                 title: 'Get Your Roadmap',
-                desc: 'A sequenced action plan with exactly what to do next — documents to get, deadlines to hit, and who to call.',
-                icon: (
-                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                  </svg>
-                )
-              }
-            ].map(({ num, title, desc, icon }) => (
-              <div key={num}
-                className="bg-white rounded-2xl p-8 shadow-sm border border-[#E2DED6]
-                           hover:shadow-md hover:-translate-y-1 transition-all duration-300 group">
-                <div className="flex items-start gap-4 mb-4">
-                  <span className="text-5xl font-bold text-[#E2DED6] leading-none group-hover:text-[#0F6E56]/20 transition-colors"
-                    style={{ fontFamily: "'Playfair Display', serif" }}>
+                desc: 'A sequenced action plan with exactly what to do, documents to get, deadlines to hit, and who to call — school by school.',
+              },
+            ].map(({ num, code, title, desc }) => (
+              <div
+                key={num}
+                className="step-card"
+                style={{ padding: '40px 32px' }}
+              >
+                {/* Card header */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 32 }}>
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      color: 'rgba(15,110,86,0.18)',
+                      fontSize: 56, fontWeight: 700, lineHeight: 1,
+                    }}
+                  >
                     {num}
                   </span>
-                  <div className="text-[#0F6E56] mt-1">{icon}</div>
+                  <span
+                    style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      color: 'rgba(15,110,86,0.4)',
+                      fontSize: 9, letterSpacing: '0.16em',
+                      paddingTop: 8,
+                    }}
+                  >
+                    {code}
+                  </span>
                 </div>
-                <h3 className="text-[#1C1C1A] text-xl font-semibold mb-3"
-                  style={{ fontFamily: "'DM Serif Display', serif" }}>
+
+                {/* Thin teal accent bar */}
+                <div style={{ width: 28, height: 1, background: '#0F6E56', opacity: 0.6, marginBottom: 16 }} />
+
+                <h3
+                  style={{
+                    fontFamily: "'JetBrains Mono', monospace",
+                    color: '#F5F3EE', fontSize: 15,
+                    fontWeight: 700, letterSpacing: '-0.01em',
+                    margin: '0 0 12px 0',
+                  }}
+                >
                   {title}
                 </h3>
-                <p className="text-[#6B6A65] text-sm leading-relaxed">{desc}</p>
+                <p
+                  style={{
+                    color: 'rgba(245,243,238,0.42)',
+                    fontSize: 14, lineHeight: 1.72, margin: 0,
+                  }}
+                >
+                  {desc}
+                </p>
               </div>
             ))}
           </div>
 
           {/* Bottom CTA */}
-          <div className="mt-16 text-center">
+          <div style={{ marginTop: 64, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 14 }}>
             <button
+              className="btn-teal"
               onClick={() => navigate('/intake')}
-              className="bg-[#0F6E56] hover:bg-[#0a4f3e] text-white text-base font-semibold
-                         px-10 py-4 rounded-full shadow-md hover:shadow-lg hover:-translate-y-0.5
-                         transition-all duration-200 min-h-[52px]"
+              aria-label="Start my college readiness assessment"
             >
-              Start My Assessment →
+              START MY ASSESSMENT →
             </button>
-            <p className="text-[#6B6A65] text-xs mt-4">
-              Free · 2 minutes · No account required
-            </p>
+            <span
+              style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                color: 'rgba(15,110,86,0.38)',
+                fontSize: 10, letterSpacing: '0.14em',
+              }}
+            >
+              FREE · 2 MINUTES · NO ACCOUNT REQUIRED
+            </span>
           </div>
         </div>
       </section>
 
-      {/* ── Footer ───────────────────────────────────────────────── */}
-      <footer className="bg-[#1C1C1A] text-white/50 py-8 px-6 text-center text-xs">
-        <p className="mb-1" style={{ fontFamily: "'DM Serif Display', serif" }}>
-          Vazhi <span className="text-[#5ecfb1]">வழி</span>
-        </p>
-        <p>Your data stays in your browser. Nothing is stored or shared.</p>
-        <p className="mt-2">Built for foster youth in Arizona.</p>
+      {/* ── Footer bar ──────────────────────────────────────────────────────── */}
+      <footer
+        style={{
+          background: '#080C0A',
+          borderTop: '1px solid rgba(15,110,86,0.15)',
+          padding: '16px 28px',
+          display: 'flex', alignItems: 'center',
+          justifyContent: 'space-between', flexWrap: 'wrap', gap: 10,
+        }}
+      >
+        <span
+          style={{
+            fontFamily: "'JetBrains Mono', monospace",
+            color: 'rgba(15,110,86,0.4)', fontSize: 10, letterSpacing: '0.12em',
+          }}
+        >
+          VAZHI வழி — BUILT FOR FOSTER YOUTH IN ARIZONA
+        </span>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <span
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              color: 'rgba(15,110,86,0.35)', fontSize: 10, letterSpacing: '0.1em',
+            }}
+          >
+            NO DATA STORED · BROWSER ONLY · V4.0
+          </span>
+
+          {/* Animated sequential dots */}
+          <div style={{ display: 'flex', gap: 4 }} aria-hidden="true">
+            <span className="seq-dot-1" style={{ display: 'inline-block', width: 4, height: 4, borderRadius: '50%', background: '#0F6E56' }} />
+            <span className="seq-dot-2" style={{ display: 'inline-block', width: 4, height: 4, borderRadius: '50%', background: '#0F6E56' }} />
+            <span className="seq-dot-3" style={{ display: 'inline-block', width: 4, height: 4, borderRadius: '50%', background: '#0F6E56' }} />
+          </div>
+        </div>
       </footer>
 
     </div>

@@ -81,3 +81,104 @@ body {
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
+
+/* Home page — technical dark aesthetic */
+@keyframes blink-cursor {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+@keyframes status-pulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.3); }
+}
+
+@keyframes dot-seq-1 {
+  0%, 100% { opacity: 0.25; } 33% { opacity: 1; }
+}
+@keyframes dot-seq-2 {
+  0%, 100% { opacity: 0.25; } 66% { opacity: 1; }
+}
+@keyframes dot-seq-3 {
+  0%, 100% { opacity: 0.25; } 100% { opacity: 1; }
+}
+
+@keyframes hero-enter {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.hero-line-1 { animation: hero-enter 0.6s ease 0.1s both; }
+.hero-line-2 { animation: hero-enter 0.6s ease 0.25s both; }
+.hero-line-3 { animation: hero-enter 0.6s ease 0.4s both; }
+.hero-line-4 { animation: hero-enter 0.6s ease 0.55s both; }
+.hero-line-5 { animation: hero-enter 0.6s ease 0.7s both; }
+.hero-line-6 { animation: hero-enter 0.6s ease 0.85s both; }
+
+.cursor-blink { animation: blink-cursor 1.05s step-end infinite; }
+.status-dot   { animation: status-pulse 2.4s ease-in-out infinite; }
+.seq-dot-1    { animation: dot-seq-1 1.8s ease-in-out infinite; }
+.seq-dot-2    { animation: dot-seq-2 1.8s ease-in-out 0.3s infinite; }
+.seq-dot-3    { animation: dot-seq-3 1.8s ease-in-out 0.6s infinite; }
+
+/* Blueprint button hover — corner accents appear on hover */
+.btn-primary {
+  position: relative;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #080C0A;
+  background: #BA7517;
+  border: 1.5px solid #BA7517;
+  padding: 14px 32px;
+  cursor: pointer;
+  min-height: 52px;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+  outline: none;
+}
+.btn-primary:hover { background: #d4891e; border-color: #d4891e; transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+
+.btn-secondary {
+  position: relative;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #0F6E56;
+  background: transparent;
+  border: 1.5px solid rgba(15,110,86,0.45);
+  padding: 14px 32px;
+  cursor: pointer;
+  min-height: 52px;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  outline: none;
+}
+.btn-secondary:hover {
+  background: rgba(15,110,86,0.1);
+  border-color: #0F6E56;
+  color: #1a8a6e;
+}
+
+.btn-teal {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #080C0A;
+  background: #0F6E56;
+  border: 1.5px solid #0F6E56;
+  padding: 14px 32px;
+  cursor: pointer;
+  min-height: 52px;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+  outline: none;
+}
+.btn-teal:hover { background: #1a8a6e; border-color: #1a8a6e; transform: translateY(-1px); }
+
+.step-card {
+  background: #080C0A;
+  transition: background 0.2s ease;
+}
+.step-card:hover { background: #0D1410; }
