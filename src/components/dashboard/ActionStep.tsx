@@ -8,13 +8,31 @@ interface ActionStepProps {
   completed: boolean;
   unlocked: boolean;
   delta?: ScoreDelta;
+  unlockedTitles?: string[];
   onToggle: (stepNumber: number) => void;
 }
 
-export function ActionStep({ step, completed, unlocked, delta, onToggle }: ActionStepProps) {
+/** Returns the score category with the biggest delta for the "no unlocks" message. */
+function dominantCategory(delta?: ScoreDelta): string {
+  if (!delta) return 'readiness';
+  const cats = [
+    { name: 'financial aid', val: delta.financial_aid },
+    { name: 'application',   val: delta.application },
+    { name: 'timeline',      val: delta.timeline },
+    { name: 'academic',      val: delta.academic },
+  ];
+  const best = cats.reduce((a, b) => b.val > a.val ? b : a, cats[0]);
+  return best.val > 0 ? best.name : 'readiness';
+}
+
+export function ActionStep({ step, completed, unlocked, delta, unlockedTitles = [], onToggle }: ActionStepProps) {
   const isUrgent = step.days_until_deadline !== null && step.days_until_deadline <= 14;
   const docsNeeded = step.documents_needed.filter(d => d.status === 'need');
   const docsHave = step.documents_needed.filter(d => d.status === 'have');
+
+  const unlockMessage = unlockedTitles.length > 0
+    ? `✓ Unlocks: ${unlockedTitles.join(', ')}`
+    : `✓ Completed — your ${dominantCategory(delta)} score improved`;
 
   return (
     <div className={`rounded-2xl border-2 px-4 py-4 space-y-3 transition-all duration-300
@@ -66,10 +84,29 @@ export function ActionStep({ step, completed, unlocked, delta, onToggle }: Actio
             </div>
           </div>
           <p className="text-[13px] text-[#5C6B63] mt-1 leading-relaxed">{step.why_this_is_next}</p>
+
+          {/* Unlock message — fades in when checked, fades out when unchecked */}
+          <div
+            style={{
+              maxHeight: completed ? '3rem' : 0,
+              opacity: completed ? 1 : 0,
+              overflow: 'hidden',
+              marginTop: completed ? 8 : 0,
+              transition: 'opacity 300ms ease-out, max-height 300ms ease-out, margin-top 200ms ease-out',
+              fontSize: 14,
+              color: '#0F6E56',
+              fontFamily: 'Inter, sans-serif',
+              fontWeight: 400,
+              lineHeight: 1.4,
+            }}
+            aria-live="polite"
+          >
+            {unlockMessage}
+          </div>
         </div>
       </div>
 
-      {/* Score delta preview */}
+      {/* Score delta preview — shown before completing */}
       {delta && !completed && unlocked && (
         <div className="bg-[#0F6E56]/5 border border-[#0F6E56]/20 rounded-xl px-4 py-3">
           <p className="text-[13px] font-bold text-[#0F6E56] mb-1.5">Complete this step to unlock:</p>
@@ -167,16 +204,6 @@ export function ActionStep({ step, completed, unlocked, delta, onToggle }: Actio
           )}
 
           <SourceCitation url={step.source_url} verifyWith={step.verify_with} />
-        </div>
-      )}
-
-      {/* Completed state */}
-      {completed && (
-        <div className="flex items-center gap-2 text-[13px] text-[#0F6E56] font-semibold">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          Marked complete — your scores have been updated
         </div>
       )}
 
