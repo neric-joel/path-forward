@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { BackgroundPaths } from './background-paths';
 
@@ -10,50 +9,6 @@ const MONO = "'IBM Plex Mono', monospace";
 const DISPLAY = "'Space Grotesk', sans-serif";
 const SANS = "'Inter', system-ui, sans-serif";
 
-// ── Corner frame accent ───────────────────────────────────────────────────────
-function CornerFrame({
-  top, bottom, left, right, size = 12, opacity = 0.3,
-}: {
-  top?: string; bottom?: string; left?: string; right?: string;
-  size?: number; opacity?: number;
-}) {
-  const style: CSSProperties = {
-    position: 'absolute',
-    width: size,
-    height: size,
-    borderColor: `rgba(15,110,86,${opacity})`,
-    borderStyle: 'solid',
-    borderWidth: 0,
-    ...(top    !== undefined && { top }),
-    ...(bottom !== undefined && { bottom }),
-    ...(left   !== undefined && { left }),
-    ...(right  !== undefined && { right }),
-    ...(top    !== undefined && left  !== undefined && { borderTopWidth: '2px', borderLeftWidth: '2px' }),
-    ...(top    !== undefined && right !== undefined && { borderTopWidth: '2px', borderRightWidth: '2px' }),
-    ...(bottom !== undefined && left  !== undefined && { borderBottomWidth: '2px', borderLeftWidth: '2px' }),
-    ...(bottom !== undefined && right !== undefined && { borderBottomWidth: '2px', borderRightWidth: '2px' }),
-  };
-  return <div style={style} aria-hidden="true" />;
-}
-
-// ── Dot row separator ─────────────────────────────────────────────────────────
-function DotRow({ active = 5, total = 40 }: { active?: number; total?: number }) {
-  return (
-    <div className="hidden lg:flex" style={{ gap: 4, marginBottom: 24 }} aria-hidden="true">
-      {Array.from({ length: total }).map((_, i) => (
-        <div
-          key={i}
-          style={{
-            width: 2, height: 2, borderRadius: '50%',
-            background: i < active ? 'rgba(15,110,86,0.6)' : 'rgba(15,110,86,0.18)',
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
-// ── Main component ────────────────────────────────────────────────────────────
 export default function HeroAscii({ onDemo }: HeroAsciiProps) {
   const navigate = useNavigate();
 
@@ -102,25 +57,25 @@ export default function HeroAscii({ onDemo }: HeroAsciiProps) {
           <a
             href="#how-it-works"
             style={{
-              fontFamily: MONO,
-              color: '#5C6B63', fontSize: 11,
-              letterSpacing: '0.08em', textDecoration: 'none',
+              fontFamily: SANS,
+              color: '#5C6B63', fontSize: 14, fontWeight: 500,
+              textDecoration: 'none',
               transition: 'color 0.2s',
             }}
             onMouseEnter={e => (e.currentTarget.style.color = '#0F6E56')}
             onMouseLeave={e => (e.currentTarget.style.color = '#5C6B63')}
           >
-            HOW IT WORKS
+            How It Works
           </a>
           <button
             onClick={() => navigate('/intake')}
             style={{
-              fontFamily: MONO,
-              color: '#0F6E56', fontSize: 11,
-              letterSpacing: '0.08em', background: 'transparent',
+              fontFamily: SANS,
+              color: '#0F6E56', fontSize: 14, fontWeight: 500,
+              background: 'transparent',
               border: '1.5px solid rgba(15,110,86,0.45)',
-              borderRadius: 6,
-              padding: '7px 16px', cursor: 'pointer',
+              borderRadius: 8,
+              padding: '7px 18px', cursor: 'pointer',
               transition: 'border-color 0.2s, background 0.2s',
               minHeight: 36,
             }}
@@ -134,7 +89,7 @@ export default function HeroAscii({ onDemo }: HeroAsciiProps) {
             }}
             aria-label="Get started"
           >
-            GET STARTED
+            Get Started
           </button>
         </div>
       </nav>
@@ -143,7 +98,7 @@ export default function HeroAscii({ onDemo }: HeroAsciiProps) {
       <section
         style={{
           position: 'relative', minHeight: '100vh',
-          display: 'flex', alignItems: 'center',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
           overflow: 'hidden', paddingTop: 56,
         }}
       >
@@ -152,95 +107,52 @@ export default function HeroAscii({ onDemo }: HeroAsciiProps) {
           <BackgroundPaths />
         </div>
 
-        {/* Warm fade — left reads clean, right shows paths */}
+        {/* Soft overlay — paths visible through the center */}
         <div
           aria-hidden="true"
           style={{
             position: 'absolute', inset: 0, zIndex: 1,
-            background: 'linear-gradient(108deg, rgba(250,250,247,0.92) 30%, rgba(250,250,247,0.55) 60%, rgba(250,250,247,0.08) 100%)',
+            background: 'radial-gradient(ellipse 80% 60% at 50% 50%, rgba(250,250,247,0.82) 0%, rgba(250,250,247,0.55) 60%, rgba(250,250,247,0.12) 100%)',
           }}
         />
 
-        {/* Corner frame accents */}
-        <CornerFrame top="68px" left="16px" opacity={0.3} />
-        <CornerFrame top="68px" right="16px" opacity={0.18} />
-        <CornerFrame bottom="16px" left="16px" opacity={0.18} />
-        <CornerFrame bottom="16px" right="16px" opacity={0.14} />
-
-        {/* Hero content */}
+        {/* Centered hero content */}
         <div
           style={{
             position: 'relative', zIndex: 10,
-            width: '100%', maxWidth: 1200,
-            margin: '0 auto', padding: '80px 28px 80px 40px',
+            width: '100%', maxWidth: 768,
+            margin: '0 auto',
+            padding: '80px 28px',
+            textAlign: 'center',
           }}
         >
-          {/* 001 label */}
-          <div
-            className="hero-line-1"
-            style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}
-          >
-            <div style={{ width: 24, height: 1, background: 'rgba(15,110,86,0.35)' }} aria-hidden="true" />
-            <span style={{ fontFamily: MONO, color: '#0F6E56', fontSize: 10, letterSpacing: '0.22em', fontWeight: 400 }}>
-              001
-            </span>
-            <div style={{ width: 48, height: 1, background: 'rgba(15,110,86,0.25)' }} aria-hidden="true" />
-            <span style={{ fontFamily: MONO, color: 'rgba(15,110,86,0.5)', fontSize: 9, letterSpacing: '0.18em' }}>
-              COLLEGE.READINESS
-            </span>
-          </div>
-
           {/* Headline */}
-          <div style={{ position: 'relative' }}>
-            <h1
-              className="hero-line-2"
-              style={{
-                fontFamily: DISPLAY,
-                color: '#1A2A22',
-                fontSize: 'clamp(40px, 6.5vw, 88px)',
-                fontWeight: 800,
-                lineHeight: 1.0,
-                letterSpacing: '-0.02em',
-                margin: '0 0 2px 0',
-              }}
-            >
-              YOUR PATH
-            </h1>
-            <div
-              className="hero-line-3"
-              aria-label="STARTS HERE"
-              style={{
-                fontFamily: DISPLAY,
-                color: '#0F6E56',
-                fontSize: 'clamp(40px, 6.5vw, 88px)',
-                fontWeight: 800,
-                lineHeight: 1.0,
-                letterSpacing: '-0.02em',
-                marginBottom: 32,
-                display: 'flex', alignItems: 'baseline', gap: 6,
-              }}
-            >
-              STARTS HERE
-              <span className="cursor-blink" aria-hidden="true" style={{ color: '#0F6E56' }}>_</span>
-            </div>
-          </div>
-
-          {/* Dot row separator */}
-          <div className="hero-line-4">
-            <DotRow active={5} total={40} />
-          </div>
+          <h1
+            className="hero-line-1"
+            style={{
+              fontFamily: DISPLAY,
+              fontWeight: 700,
+              fontSize: 'clamp(40px, 6.5vw, 80px)',
+              lineHeight: 1.05,
+              letterSpacing: '-0.02em',
+              margin: '0 0 0 0',
+            }}
+          >
+            <span style={{ color: '#1A2A22', display: 'block' }}>Your Path</span>
+            <span style={{ color: '#0F6E56', display: 'block' }}>Starts Here</span>
+          </h1>
 
           {/* Subtitle */}
           <p
-            className="hero-line-5"
+            className="hero-line-2"
             style={{
               fontFamily: SANS,
               color: '#5C6B63',
-              fontSize: 'clamp(15px, 1.6vw, 18px)',
+              fontSize: 'clamp(16px, 1.8vw, 19px)',
               fontWeight: 400,
-              lineHeight: 1.7,
-              maxWidth: 440,
-              margin: '0 0 44px 0',
+              lineHeight: 1.65,
+              maxWidth: 480,
+              margin: '24px auto 0',
             }}
           >
             Foster youth in Arizona — discover your funding,
@@ -249,63 +161,93 @@ export default function HeroAscii({ onDemo }: HeroAsciiProps) {
 
           {/* CTA buttons */}
           <div
-            className="hero-line-6"
-            style={{ display: 'flex', flexWrap: 'wrap', gap: 14, marginBottom: 40 }}
+            className="hero-line-3"
+            style={{
+              display: 'flex', flexWrap: 'wrap',
+              justifyContent: 'center', gap: 16,
+              marginTop: 36,
+            }}
           >
             <button
-              className="btn-primary"
               onClick={() => navigate('/intake')}
               aria-label="Get my college readiness plan"
+              style={{
+                fontFamily: SANS, fontSize: 15, fontWeight: 500,
+                color: '#ffffff',
+                background: '#BA7517',
+                border: '1.5px solid #BA7517',
+                borderRadius: 10,
+                padding: '13px 32px',
+                minHeight: 48,
+                cursor: 'pointer',
+                boxShadow: '0 1px 3px rgba(186,117,23,0.25)',
+                transition: 'background 0.2s, border-color 0.2s, transform 0.15s, box-shadow 0.15s',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = '#9A6013';
+                e.currentTarget.style.borderColor = '#9A6013';
+                e.currentTarget.style.transform = 'scale(1.02)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(186,117,23,0.3)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = '#BA7517';
+                e.currentTarget.style.borderColor = '#BA7517';
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = '0 1px 3px rgba(186,117,23,0.25)';
+              }}
             >
-              GET MY PLAN →
+              Get My Plan →
             </button>
             <button
-              className="btn-secondary"
               onClick={handleDemo}
               aria-label="Try the demo with sample data"
+              style={{
+                fontFamily: SANS, fontSize: 15, fontWeight: 500,
+                color: '#0F6E56',
+                background: 'transparent',
+                border: '1.5px solid #0F6E56',
+                borderRadius: 10,
+                padding: '13px 32px',
+                minHeight: 48,
+                cursor: 'pointer',
+                transition: 'background 0.2s, transform 0.15s',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = 'rgba(15,110,86,0.08)';
+                e.currentTarget.style.transform = 'scale(1.02)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
             >
-              TRY DEMO
+              Try Demo
             </button>
           </div>
 
-          {/* Privacy status line */}
+          {/* Privacy line */}
           <div
-            className="hero-line-6"
+            className="hero-line-4"
             style={{
-              display: 'flex', alignItems: 'center', gap: 10,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              marginTop: 28,
               fontFamily: MONO,
-              fontSize: 10, color: 'rgba(15,110,86,0.6)',
-              letterSpacing: '0.12em',
+              fontSize: 11, color: '#5C6B63',
+              letterSpacing: '0.06em',
             }}
             aria-label="Privacy: no data stored, browser only"
           >
             <span
               className="status-dot"
               aria-hidden="true"
-              style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: '#0F6E56' }}
+              style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: '#0F6E56', flexShrink: 0 }}
             />
-            PRIVACY.ACTIVE
-            <span aria-hidden="true" style={{ color: 'rgba(15,110,86,0.3)' }}>·</span>
-            NO DATA STORED
-            <span aria-hidden="true" style={{ color: 'rgba(15,110,86,0.3)' }}>·</span>
-            BROWSER ONLY
+            Privacy active
+            <span aria-hidden="true" style={{ color: 'rgba(15,110,86,0.35)' }}>·</span>
+            No data stored
+            <span aria-hidden="true" style={{ color: 'rgba(15,110,86,0.35)' }}>·</span>
+            Browser only
           </div>
-        </div>
-
-        {/* Scroll hint */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute', bottom: 28,
-            left: '50%', transform: 'translateX(-50%)',
-            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
-            animation: 'hero-enter 0.6s ease 1.2s both',
-          }}
-        >
-          <span style={{ fontFamily: MONO, color: '#5C6B63', fontSize: 9, letterSpacing: '0.2em' }}>
-            SCROLL
-          </span>
-          <div style={{ width: 1, height: 28, background: 'linear-gradient(to bottom, rgba(15,110,86,0.4), transparent)' }} />
         </div>
       </section>
 
@@ -332,7 +274,7 @@ export default function HeroAscii({ onDemo }: HeroAsciiProps) {
               fontFamily: DISPLAY,
               color: '#1A2A22',
               fontSize: 'clamp(28px, 4vw, 44px)',
-              fontWeight: 800,
+              fontWeight: 700,
               letterSpacing: '-0.02em',
               margin: '0 0 56px 0',
             }}
@@ -369,7 +311,7 @@ export default function HeroAscii({ onDemo }: HeroAsciiProps) {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
                   <span
                     aria-hidden="true"
-                    style={{ fontFamily: DISPLAY, color: '#0F6E56', fontSize: 56, fontWeight: 800, lineHeight: 1, opacity: 0.22 }}
+                    style={{ fontFamily: DISPLAY, color: '#0F6E56', fontSize: 56, fontWeight: 700, lineHeight: 1, opacity: 0.22 }}
                   >
                     {num}
                   </span>
@@ -391,11 +333,31 @@ export default function HeroAscii({ onDemo }: HeroAsciiProps) {
           {/* Bottom CTA */}
           <div style={{ marginTop: 60, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 14 }}>
             <button
-              className="btn-teal"
               onClick={() => navigate('/intake')}
               aria-label="Start my college readiness assessment"
+              style={{
+                fontFamily: SANS, fontSize: 15, fontWeight: 500,
+                color: '#ffffff',
+                background: '#0F6E56',
+                border: '1.5px solid #0F6E56',
+                borderRadius: 10,
+                padding: '13px 32px',
+                minHeight: 48,
+                cursor: 'pointer',
+                transition: 'background 0.2s, border-color 0.2s, transform 0.15s',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = '#1a8a6e';
+                e.currentTarget.style.borderColor = '#1a8a6e';
+                e.currentTarget.style.transform = 'scale(1.02)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = '#0F6E56';
+                e.currentTarget.style.borderColor = '#0F6E56';
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
             >
-              START MY ASSESSMENT →
+              Start My Assessment →
             </button>
             <span style={{ fontFamily: MONO, color: 'rgba(15,110,86,0.45)', fontSize: 10, letterSpacing: '0.12em' }}>
               FREE · 2 MINUTES · NO ACCOUNT REQUIRED
@@ -414,7 +376,6 @@ export default function HeroAscii({ onDemo }: HeroAsciiProps) {
           justifyContent: 'space-between', flexWrap: 'wrap', gap: 10,
         }}
       >
-        {/* Left: privacy indicator */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span
             className="status-dot"
@@ -429,8 +390,6 @@ export default function HeroAscii({ onDemo }: HeroAsciiProps) {
             BROWSER ONLY
           </span>
         </div>
-
-        {/* Right */}
         <span style={{ fontFamily: MONO, color: 'rgba(240,237,230,0.35)', fontSize: 10, letterSpacing: '0.08em' }}>
           BUILT FOR FOSTER YOUTH IN ARIZONA
         </span>
