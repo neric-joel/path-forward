@@ -20,10 +20,10 @@ export function ReadinessSnapshot({ readiness, scores, originalScores }: Readine
   return (
     <section className="bg-white rounded-2xl border border-[#E2DED6] p-6 shadow-sm space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-[#1C1C1A]" style={{ fontFamily: "'DM Serif Display', serif" }}>
+        <h2 className="text-2xl font-bold text-[#1A2A22]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
           Your Readiness Snapshot
         </h2>
-        <p className="text-[#6B6A65] text-[15px] mt-1 leading-relaxed">{readiness.overall_summary}</p>
+        <p className="text-[#5C6B63] text-[15px] mt-1 leading-relaxed">{readiness.overall_summary}</p>
       </div>
 
       {/* Overall ring + category rings */}

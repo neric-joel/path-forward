@@ -17,18 +17,18 @@ export function AidCard({ program }: AidCardProps) {
       {/* Header */}
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex-1">
-          <h3 className="font-semibold text-[#1C1C1A] text-lg leading-snug">{program.name}</h3>
+          <h3 className="font-semibold text-[#1A2A22] text-lg leading-snug">{program.name}</h3>
           <p className="text-[#0F6E56] text-xl font-bold mt-1">{program.max_amount}</p>
         </div>
         <ConfidenceBadge level={program.confidence} reason={program.confidence_reason} />
       </div>
 
       {/* Coverage */}
-      <p className="text-[#6B6A65] text-[15px] leading-relaxed">{program.what_it_covers}</p>
+      <p className="text-[#5C6B63] text-[15px] leading-relaxed">{program.what_it_covers}</p>
 
       {/* Confidence reason */}
-      <div className="bg-[#F5F3EE] rounded-xl px-4 py-3">
-        <p className="text-[13px] text-[#1C1C1A]">
+      <div className="bg-[#F5F2EC] rounded-xl px-4 py-3">
+        <p className="text-[13px] text-[#1A2A22]">
           <span className="font-semibold">Why you qualify: </span>
           {program.confidence_reason}
         </p>
@@ -41,7 +41,7 @@ export function AidCard({ program }: AidCardProps) {
             ? 'bg-[#D85A30] text-white'
             : isUrgent
               ? 'bg-[#D85A30]/10 text-[#D85A30]'
-              : 'bg-[#E2DED6]/60 text-[#6B6A65]'
+              : 'bg-[#E2DED6]/60 text-[#5C6B63]'
           }`}>
           <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -56,8 +56,8 @@ export function AidCard({ program }: AidCardProps) {
 
       {/* Next action */}
       <div className="border-t border-[#E2DED6] pt-4 space-y-2">
-        <p className="text-[13px] font-bold text-[#1C1C1A] uppercase tracking-wide">Next Action</p>
-        <p className="text-[15px] text-[#1C1C1A] leading-relaxed">{program.next_action}</p>
+        <p className="text-[13px] font-bold text-[#1A2A22] uppercase tracking-wide">Next Action</p>
+        <p className="text-[15px] text-[#1A2A22] leading-relaxed">{program.next_action}</p>
         <SourceCitation url={program.source_url} verifyWith={program.verify_with} />
       </div>
     </div>

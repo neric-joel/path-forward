@@ -68,13 +68,13 @@ function TaskRow({ task }: { task: RoadmapTask }) {
       ${hasDeadline ? 'border-l-[3px] border-l-[#BA7517] pl-[17px]' : ''}`}>
 
       <div className="flex items-start justify-between gap-2 flex-wrap mb-1.5">
-        <p className="text-[15px] font-semibold text-[#1C1C1A] leading-snug flex-1">{task.task}</p>
+        <p className="text-[15px] font-semibold text-[#1A2A22] leading-snug flex-1">{task.task}</p>
         <span className={`shrink-0 text-[13px] font-semibold px-2.5 py-1 rounded-full border ${cat.color}`}>
           {cat.label}
         </span>
       </div>
 
-      <p className="text-[13px] text-[#6B6A65] leading-relaxed mb-2">{task.why}</p>
+      <p className="text-[13px] text-[#5C6B63] leading-relaxed mb-2">{task.why}</p>
 
       <div className="flex flex-wrap items-center gap-3">
         {task.deadline && (
@@ -86,7 +86,7 @@ function TaskRow({ task }: { task: RoadmapTask }) {
             {task.deadline}
           </span>
         )}
-        <span className="text-[13px] text-[#6B6A65] flex items-center gap-1">
+        <span className="text-[13px] text-[#5C6B63] flex items-center gap-1">
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
               d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -103,7 +103,7 @@ function TaskRow({ task }: { task: RoadmapTask }) {
       </div>
 
       {task.depends_on && task.depends_on.length > 0 && (
-        <p className="text-[13px] text-[#6B6A65] mt-2 flex items-center gap-1">
+        <p className="text-[13px] text-[#5C6B63] mt-2 flex items-center gap-1">
           <span className="text-[#E2DED6]">→</span>
           <span className="italic">After: {task.depends_on.join(', ')}</span>
         </p>
@@ -143,8 +143,8 @@ function PhaseCard({ phase, index, isLast }: { phase: RoadmapPhase; index: numbe
                    style={{ color: cfg.accentColor }}>
                   {cfg.label} · Phase {index + 1}
                 </p>
-                <h3 className="text-lg font-semibold text-[#1C1C1A] leading-snug"
-                  style={{ fontFamily: "'DM Serif Display', serif" }}>
+                <h3 className="text-lg font-bold text-[#1A2A22] leading-snug"
+                  style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                   {phase.name}
                 </h3>
               </div>
@@ -152,8 +152,8 @@ function PhaseCard({ phase, index, isLast }: { phase: RoadmapPhase; index: numbe
               {/* Cost chip — prominent */}
               {phase.semester_cost_estimate !== null && (
                 <div className="shrink-0 bg-white border border-[#E2DED6] rounded-xl px-4 py-2 text-center shadow-sm">
-                  <p className="text-[13px] text-[#6B6A65] font-medium">Est. cost</p>
-                  <p className="text-lg font-bold text-[#1C1C1A]">{fmt(phase.semester_cost_estimate)}</p>
+                  <p className="text-[13px] text-[#5C6B63] font-medium">Est. cost</p>
+                  <p className="text-lg font-bold text-[#1A2A22]">{fmt(phase.semester_cost_estimate)}</p>
                 </div>
               )}
             </div>
@@ -196,7 +196,7 @@ export function SemesterRoadmap({ roadmap }: SemesterRoadmapProps) {
           <p className="text-[13px] font-semibold text-white/70 uppercase tracking-widest mb-0.5">
             Your Path to Graduation
           </p>
-          <h2 className="text-2xl font-bold" style={{ fontFamily: "'DM Serif Display', serif" }}>
+          <h2 className="text-2xl font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
             {roadmap.based_on_school}
           </h2>
           <p className="text-[13px] text-white/80 mt-0.5">Starting {roadmap.recommended_start}</p>
@@ -212,7 +212,7 @@ export function SemesterRoadmap({ roadmap }: SemesterRoadmapProps) {
         {Object.entries(PHASE_CONFIG).map(([type, cfg]) => (
           <div key={type} className="flex items-center gap-1.5">
             <span className="text-base">{cfg.icon}</span>
-            <span className="text-[13px] text-[#6B6A65] font-medium">{cfg.label}</span>
+            <span className="text-[13px] text-[#5C6B63] font-medium">{cfg.label}</span>
           </div>
         ))}
       </div>

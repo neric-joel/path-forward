@@ -16,7 +16,7 @@ interface RoadmapTabProps {
 const FIT_LABEL_STYLES: Record<string, string> = {
   'Strong match': 'bg-[#0F6E56]/10 text-[#0F6E56] border-[#0F6E56]/20',
   'Good match': 'bg-[#BA7517]/10 text-[#BA7517] border-[#BA7517]/20',
-  'Worth exploring': 'bg-[#6B6A65]/10 text-[#6B6A65] border-[#6B6A65]/20',
+  'Worth exploring': 'bg-[#6B6A65]/10 text-[#5C6B63] border-[#6B6A65]/20',
 };
 
 const ROADMAP_QUESTIONS: TabQuestion[] = [
@@ -111,12 +111,12 @@ export function RoadmapTab({ intakeData, result, schoolResult, onLoaded }: Roadm
       {/* School picker */}
       <div>
         <h2
-          className="text-2xl font-semibold text-[#1C1C1A] mb-1"
-          style={{ fontFamily: "'DM Serif Display', serif" }}
+          className="text-2xl font-bold text-[#1A2A22] mb-1"
+          style={{ fontFamily: "'Space Grotesk', sans-serif" }}
         >
           Choose Your School
         </h2>
-        <p className="text-[15px] text-[#6B6A65] mb-4">
+        <p className="text-[15px] text-[#5C6B63] mb-4">
           Select which school you'd like to build a roadmap for.
         </p>
 
@@ -148,8 +148,8 @@ export function RoadmapTab({ intakeData, result, schoolResult, onLoaded }: Roadm
                     {school.fit_label}
                   </span>
                 </div>
-                <p className="text-[15px] font-semibold text-[#1C1C1A] leading-snug">{school.name}</p>
-                <p className="text-[13px] text-[#6B6A65] mt-0.5">
+                <p className="text-[15px] font-semibold text-[#1A2A22] leading-snug">{school.name}</p>
+                <p className="text-[13px] text-[#5C6B63] mt-0.5">
                   {school.type === 'community_college' ? 'Community College' : 'University'}
                 </p>
               </button>
@@ -172,7 +172,7 @@ export function RoadmapTab({ intakeData, result, schoolResult, onLoaded }: Roadm
         className={`w-full flex items-center justify-center gap-2 py-4 rounded-2xl
           font-semibold text-base transition-all min-h-[52px] shadow-md
           ${isLoading
-            ? 'bg-[#E2DED6] text-[#6B6A65] cursor-not-allowed'
+            ? 'bg-[#E2DED6] text-[#5C6B63] cursor-not-allowed'
             : 'bg-[#0F6E56] hover:bg-[#0a4f3e] text-white hover:shadow-lg'
           }`}
       >
@@ -195,7 +195,7 @@ export function RoadmapTab({ intakeData, result, schoolResult, onLoaded }: Roadm
         </div>
       )}
 
-      <p className="text-[13px] text-[#6B6A65] text-center">
+      <p className="text-[13px] text-[#5C6B63] text-center">
         All questions above are optional. Skip any you'd prefer not to answer.
       </p>
     </div>

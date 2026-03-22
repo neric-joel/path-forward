@@ -15,10 +15,10 @@ function ProgramSummaryCard({ program }: { program: MatchedProgramSummary }) {
     <div className="bg-white rounded-xl border border-[#E2DED6] px-4 py-4 flex items-start gap-3">
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap mb-1">
-          <span className="text-[15px] font-semibold text-[#1C1C1A]">{program.name}</span>
+          <span className="text-[15px] font-semibold text-[#1A2A22]">{program.name}</span>
           <ConfidenceBadge level={program.confidence} />
         </div>
-        <p className="text-[13px] text-[#6B6A65] mb-2">{program.confidence_reason}</p>
+        <p className="text-[13px] text-[#5C6B63] mb-2">{program.confidence_reason}</p>
         <p className="text-[13px] text-[#0F6E56] font-semibold">{program.next_action}</p>
       </div>
       <div className="flex-shrink-0 text-right">
@@ -100,12 +100,12 @@ export function OverviewTab({ intakeData, result, onLoaded }: OverviewTabProps) 
       <div>
         <div className="flex items-center justify-between mb-4">
           <h2
-            className="text-2xl font-semibold text-[#1C1C1A]"
-            style={{ fontFamily: "'DM Serif Display', serif" }}
+            className="text-2xl font-semibold text-[#1A2A22]"
+            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
           >
             Funding You May Qualify For
           </h2>
-          <span className="text-[13px] text-[#6B6A65] bg-[#F5F3EE] px-2 py-1 rounded-full">
+          <span className="text-[13px] text-[#5C6B63] bg-[#F5F2EC] px-2 py-1 rounded-full">
             {result.matched_programs.length} programs
           </span>
         </div>
@@ -114,7 +114,7 @@ export function OverviewTab({ intakeData, result, onLoaded }: OverviewTabProps) 
             <ProgramSummaryCard key={p.id} program={p} />
           ))}
         </div>
-        <p className="mt-3 text-[13px] text-[#6B6A65] text-center">
+        <p className="mt-3 text-[13px] text-[#5C6B63] text-center">
           Go to the <strong>Funding</strong> tab for full details, deadlines, and exactly what to do first.
         </p>
       </div>

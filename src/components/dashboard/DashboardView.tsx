@@ -77,12 +77,12 @@ export function DashboardView({
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
           <div>
             <p
-              className="font-semibold text-[#1C1C1A] text-sm"
-              style={{ fontFamily: "'DM Serif Display', serif" }}
+              className="font-bold text-[#1A2A22] text-sm tracking-tight"
+              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
             >
               Vazhi <span className="text-[#0F6E56]">வழி</span>
             </p>
-            <p className="text-xs text-[#6B6A65]">Your college readiness plan</p>
+            <p className="text-xs text-[#5C6B63]" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>Your college readiness plan</p>
           </div>
           <button
             onClick={onStartOver}
@@ -95,12 +95,14 @@ export function DashboardView({
 
       {/* Banners */}
       {isDemo && (
-        <div className="bg-[#BA7517] text-white text-xs text-center py-2 px-4 font-medium">
-          Demo Mode — This is sample data. Complete the intake form to get your real plan.
+        <div className="bg-[#BA7517] text-white text-xs text-center py-2 px-4 font-medium"
+          style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
+          You're viewing sample data — <button onClick={onStartOver} className="underline font-semibold">Get My Plan</button> for personalized results →
         </div>
       )}
-      <div className="bg-[#0F6E56] text-white text-xs text-center py-1.5 px-4">
-        🔒 Your data stays in your browser. Nothing is stored or shared.
+      <div className="border-b border-[#E2DED6] text-[#5C6B63] text-xs text-center py-1.5 px-4"
+        style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
+        Your data stays in your browser. Nothing is stored or shared.
       </div>
 
       {/* Tab bar */}
@@ -177,11 +179,11 @@ export function DashboardView({
           </button>
         )}
         <div className="space-y-1">
-          <p className="text-[13px] text-[#6B6A65]">
+          <p className="text-[13px] text-[#5C6B63]" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
             This plan is a navigation guide, not legal or financial advice.
             Always verify eligibility directly with the programs listed.
           </p>
-          <p className="text-[13px] text-[#6B6A65]">Built for foster youth in Arizona · Vazhi வழி</p>
+          <p className="text-[13px] text-[#5C6B63]" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>Built for foster youth in Arizona · Vazhi வழி</p>
         </div>
       </div>
     </div>
