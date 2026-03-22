@@ -17,7 +17,7 @@ export function ActionStep({ step, completed, unlocked, delta, onToggle }: Actio
   const docsHave = step.documents_needed.filter(d => d.status === 'have');
 
   return (
-    <div className={`rounded-2xl border-2 px-6 py-5 space-y-4 transition-all duration-300
+    <div className={`rounded-2xl border-2 px-4 py-4 space-y-3 transition-all duration-300
       ${completed
         ? 'border-[#0F6E56]/30 bg-[#0F6E56]/5'
         : unlocked

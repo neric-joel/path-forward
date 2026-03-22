@@ -11,7 +11,7 @@ export function AidCard({ program }: AidCardProps) {
   const isVeryUrgent = program.days_until_deadline !== null && program.days_until_deadline <= 14;
 
   return (
-    <div className={`bg-white rounded-2xl border shadow-sm px-6 py-5 space-y-4 transition-all
+    <div className={`bg-white rounded-2xl border shadow-sm px-4 py-4 space-y-3 transition-all
       ${isUrgent ? 'border-[#D85A30]/40' : 'border-[#E2DED6]'}`}>
 
       {/* Header */}

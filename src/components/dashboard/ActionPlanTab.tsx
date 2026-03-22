@@ -132,7 +132,7 @@ export function ActionPlanTab({ intakeData, result, overviewResult, onLoaded }: 
   const currentScores = applyAllCompletedDeltas(completedSteps, syntheticResult);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="max-w-6xl mx-auto px-6 py-5">
       <ActionPlan
         result={syntheticResult}
         completedSteps={completedSteps}

@@ -45,28 +45,19 @@ export function OverviewTab({ intakeData, result, onLoaded }: OverviewTabProps) 
 
   if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-        {/* Key insight skeleton */}
-        <div className="h-20 bg-[#E2DED6] animate-pulse rounded-2xl" />
-        {/* Score rings skeleton */}
-        <div className="bg-white rounded-2xl border border-[#E2DED6] p-6">
-          <div className="h-4 w-32 bg-[#E2DED6] animate-pulse rounded mb-6" />
-          <div className="flex justify-around">
-            {[0, 1, 2, 3].map(i => (
-              <div key={i} className="flex flex-col items-center gap-2">
-                <div className="w-16 h-16 rounded-full bg-[#E2DED6] animate-pulse" />
-                <div className="h-3 w-12 bg-[#E2DED6] animate-pulse rounded" />
-              </div>
-            ))}
-          </div>
+      <div className="max-w-6xl mx-auto px-6 py-5 space-y-4">
+        {/* Row 1: key insight + readiness card side by side */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2 bg-[#E2DED6] animate-pulse rounded-2xl h-48" />
+          <div className="bg-[#E2DED6] animate-pulse rounded-2xl h-48" />
         </div>
-        {/* Program cards skeleton */}
-        <div className="space-y-3">
+        {/* Row 2: three program card skeletons */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[0, 1, 2].map(i => (
-            <div key={i} className="h-20 bg-[#E2DED6] animate-pulse rounded-xl" />
+            <div key={i} className="h-24 bg-[#E2DED6] animate-pulse rounded-xl" />
           ))}
         </div>
-        <p className="text-center text-[13px] text-[#6B6A65]">
+        <p className="text-center text-[13px] text-[#5C6B63]">
           Analyzing your situation — usually takes 10–20 seconds…
         </p>
       </div>
@@ -84,7 +75,7 @@ export function OverviewTab({ intakeData, result, onLoaded }: OverviewTabProps) 
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+    <div className="max-w-6xl mx-auto px-6 py-5 space-y-4">
       {/* Key Insight */}
       <div className="bg-[#BA7517] text-white rounded-2xl px-6 py-5 shadow-md">
         <p className="text-xs font-semibold uppercase tracking-widest text-white/70 mb-1">
@@ -98,7 +89,7 @@ export function OverviewTab({ intakeData, result, onLoaded }: OverviewTabProps) 
 
       {/* Funding Summary */}
       <div>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-3">
           <h2
             className="text-2xl font-semibold text-[#1A2A22]"
             style={{ fontFamily: "'Space Grotesk', sans-serif" }}

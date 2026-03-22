@@ -90,7 +90,7 @@ export function RoadmapTab({ intakeData, result, schoolResult, onLoaded }: Roadm
   // Show generated roadmap
   if (result) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-6 py-5">
         <button
           onClick={() => onLoaded(null as unknown as RoadmapResult)}
           className="text-[13px] text-[#0F6E56] font-semibold hover:underline mb-6 flex items-center gap-1"

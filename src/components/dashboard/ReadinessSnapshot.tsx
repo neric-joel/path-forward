@@ -18,7 +18,7 @@ const RING_COLORS = {
 
 export function ReadinessSnapshot({ readiness, scores, originalScores }: ReadinessSnapshotProps) {
   return (
-    <section className="bg-white rounded-2xl border border-[#E2DED6] p-6 shadow-sm space-y-6">
+    <section className="bg-white rounded-2xl border border-[#E2DED6] p-4 shadow-sm space-y-4">
       <div>
         <h2 className="text-2xl font-bold text-[#1A2A22]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
           Your Readiness Snapshot
