@@ -7,7 +7,7 @@ interface HeroAsciiProps {
 }
 
 const MONO = "'IBM Plex Mono', monospace";
-const DISPLAY = "'Syne', sans-serif";
+const DISPLAY = "'Space Grotesk', sans-serif";
 const SANS = "'Inter', system-ui, sans-serif";
 
 // ── Corner frame accent ───────────────────────────────────────────────────────
