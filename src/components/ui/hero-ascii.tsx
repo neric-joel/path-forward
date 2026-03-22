@@ -323,7 +323,7 @@ export default function HeroAscii({ onDemo }: HeroAsciiProps) {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
                   <span
                     aria-hidden="true"
-                    style={{ fontFamily: DISPLAY, color: '#0F6E56', fontSize: 56, fontWeight: 700, lineHeight: 1, opacity: 0.22 }}
+                    style={{ fontFamily: DISPLAY, color: '#0F6E56', fontSize: 56, fontWeight: 700, lineHeight: 1, opacity: 0.35 }}
                   >
                     {num}
                   </span>
@@ -331,7 +331,7 @@ export default function HeroAscii({ onDemo }: HeroAsciiProps) {
                     {code}
                   </span>
                 </div>
-                <div style={{ width: 28, height: 2, background: '#0F6E56', opacity: 0.45, marginBottom: 16, borderRadius: 2 }} aria-hidden="true" />
+                <div style={{ width: 28, height: 2, background: '#0F6E56', opacity: 0.6, marginBottom: 16, borderRadius: 2 }} aria-hidden="true" />
                 <h3 style={{ fontFamily: SANS, color: '#1A2A22', fontSize: 16, fontWeight: 600, margin: '0 0 10px 0', lineHeight: 1.3 }}>
                   {title}
                 </h3>
