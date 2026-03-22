@@ -22,6 +22,45 @@ const PHASE_TYPE_STYLES: Record<RoadmapPhase['phase_type'], { pill: string; labe
 
 const FALLBACK_PHASE_STYLE = { pill: 'bg-[#6B6A65]/10 text-[#6B6A65]', label: 'Phase' };
 
+const SCHOOL_ID_MAP: Record<string, string> = {
+  mesa_cc:                 'Mesa Community College',
+  asu:                     'Arizona State University',
+  u_of_a:                  'University of Arizona',
+  gcu:                     'Grand Canyon University',
+  asu_west:                'ASU West Campus',
+  maricopa_cc:             'Maricopa Community Colleges (District)',
+  pima_cc:                 'Pima Community College',
+  phoenix_college:         'Phoenix College',
+  scottsdale_cc:           'Scottsdale Community College',
+  chandler_gilbert_cc:     'Chandler-Gilbert Community College',
+  glendale_cc:             'Glendale Community College',
+  paradise_valley_cc:      'Paradise Valley Community College',
+  south_mountain_cc:       'South Mountain Community College',
+  estrella_mountain_cc:    'Estrella Mountain Community College',
+  rio_salado_cc:           'Rio Salado College',
+};
+
+function displaySchoolName(name: string): string {
+  return SCHOOL_ID_MAP[name] ?? name;
+}
+
+/** Abbreviate a phase name to fit the stepper label */
+function abbreviatePhase(name: string): string {
+  if (!name || !name.trim()) return '—';
+  const m = name.match(/(summer|fall|spring)(?:\s+semester)?\s+(\d{4})/i);
+  if (m) {
+    const s = m[1].toLowerCase();
+    const yr = m[2].slice(2);
+    const prefix = s === 'summer' ? 'Sum' : s === 'fall' ? 'Fall' : 'Spr';
+    return `${prefix} '${yr}`;
+  }
+  if (/^pre[-\s]/i.test(name) || /^preparation/i.test(name)) return 'Prep';
+  if (/^grad/i.test(name)) return 'Grad';
+  const semNum = name.match(/sem(?:ester)?\s*(\d+)/i);
+  if (semNum) return `Sem ${semNum[1]}`;
+  return name.length > 10 ? name.slice(0, 9) + '…' : name;
+}
+
 function fmt(n: number): string {
   return n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 }
@@ -32,6 +71,9 @@ function extractFundingAmount(str: string | null | undefined): string {
   if (!matches) return 'Covered';
   const total = matches
     .map((m) => parseInt(m.replace(/,/g, ''), 10))
+    // Exclude 4-digit year values (1900–2099) so that "for 2026-2027" doesn't
+    // inflate the displayed funding total by thousands of dollars.
+    .filter((n) => !(n >= 1900 && n <= 2099))
     .reduce((a, b) => a + b, 0);
   return fmt(total);
 }
@@ -56,26 +98,27 @@ function StepperBar({
         {phases.map((phase, i) => (
           <div key={i} className="flex items-center">
             {i > 0 && (
-              <div className="h-[2px] w-12 sm:w-16 bg-[#E2DED6] flex-shrink-0" aria-hidden="true" />
+              <div className="h-[2px] w-8 sm:w-10 bg-[#E2DED6] flex-shrink-0" aria-hidden="true" />
             )}
-            <div className="flex flex-col items-center gap-1 flex-shrink-0">
+            <div className="flex flex-col items-center gap-1.5 flex-shrink-0 w-[80px] sm:w-[100px]">
               <button
                 onClick={() => setSelectedIndex(i)}
                 aria-label={`Phase ${i + 1}: ${phase.name}`}
                 aria-current={selectedIndex === i ? 'step' : undefined}
-                className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
+                className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all ${
                   selectedIndex === i
                     ? 'bg-[#0F6E56] text-white shadow-md ring-4 ring-[#0F6E56]/20'
                     : 'bg-white border-2 border-[#E2DED6] text-[#5C6B63] hover:border-[#0F6E56]/40'
                 }`}
+                style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: '16px' }}
               >
                 {phase.phase_type === 'graduation' ? '🎓' : i + 1}
               </button>
               <span
-                className="text-[10px] text-[#5C6B63] text-center"
+                className="text-[12px] text-[#5C6B63] text-center leading-tight w-full"
                 style={{ fontFamily: "'IBM Plex Mono', monospace" }}
               >
-                {phase.name.length > 8 ? phase.name.slice(0, 7) + '…' : phase.name}
+                {abbreviatePhase(phase.name)}
               </span>
             </div>
           </div>
@@ -99,7 +142,7 @@ function StatCard({
   return (
     <div className="flex-1 px-4 py-3 text-center">
       <p
-        className="text-[10px] uppercase tracking-wider text-[#5C6B63] mb-1"
+        className="text-[12px] uppercase tracking-wider text-[#5C6B63] mb-1"
         style={{ fontFamily: "'IBM Plex Mono', monospace" }}
       >
         {label}
@@ -110,7 +153,7 @@ function StatCard({
         </p>
       ) : (
         <p
-          className="text-2xl font-bold"
+          className="text-3xl font-bold"
           style={{ fontFamily: "'Space Grotesk', sans-serif", color }}
         >
           {value}
@@ -214,14 +257,14 @@ function DetailPanel({
                 {/* Task text */}
                 <div className="flex-1 min-w-0">
                   <p
-                    className="text-sm text-[#1A2A22]"
+                    className="text-[14px] text-[#1A2A22]"
                     style={{ fontFamily: 'Inter, sans-serif' }}
                   >
                     {task.task}
                   </p>
                   {task.deadline && (
                     <p
-                      className="text-[11px] text-[#BA7517] mt-0.5"
+                      className="text-[12px] text-[#BA7517] mt-0.5"
                       style={{ fontFamily: "'IBM Plex Mono', monospace" }}
                     >
                       Due: {task.deadline}
@@ -230,7 +273,7 @@ function DetailPanel({
                 </div>
                 {/* Time estimate */}
                 <span
-                  className="text-[11px] text-[#5C6B63] flex-shrink-0 mt-0.5"
+                  className="text-[13px] text-[#5C6B63] flex-shrink-0 mt-0.5"
                   style={{ fontFamily: 'Inter, sans-serif' }}
                 >
                   {task.estimated_time}
@@ -239,6 +282,13 @@ function DetailPanel({
             ))}
           </div>
         </div>
+      )}
+
+      {/* Advisor verification note */}
+      {tasks.length > 0 && (
+        <p className="text-[12px] text-[#5C6B63] mt-3 leading-relaxed" style={{ fontFamily: 'Inter, sans-serif' }}>
+          These steps are AI-generated suggestions. Deadlines and requirements vary by school — confirm with your school's admissions or financial aid office before acting.
+        </p>
       )}
 
       {/* Funding section */}
@@ -298,7 +348,7 @@ export function SemesterRoadmap({ roadmap }: SemesterRoadmapProps) {
             className="text-xl font-bold"
             style={{ fontFamily: "'Space Grotesk', sans-serif" }}
           >
-            {roadmap.based_on_school}
+            {displaySchoolName(roadmap.based_on_school)}
           </h2>
           <p className="text-[12px] text-white/80 mt-0.5">
             Starting {roadmap.recommended_start}

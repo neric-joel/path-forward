@@ -72,6 +72,19 @@ export function SchoolsTab({ intakeData, result, onLoaded }: SchoolsTabProps) {
       .finally(() => { setIsLoading(false); });
   };
 
+  if (isLoading) {
+    return (
+      <div className="max-w-6xl mx-auto px-6 py-5 space-y-3">
+        {[0, 1, 2].map(i => (
+          <div key={i} className="bg-[#E2DED6] animate-pulse rounded-2xl h-[280px]" />
+        ))}
+        <p className="text-[13px] text-[#5C6B63] text-center" style={{ fontFamily: 'Inter, sans-serif' }}>
+          Finding your school matches — usually takes 15–20 seconds…
+        </p>
+      </div>
+    );
+  }
+
   if (!result) {
     return (
       <div className="max-w-lg mx-auto mt-8 mb-4 px-4">

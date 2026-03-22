@@ -129,7 +129,7 @@ interface PanelProps {
 
 function Panel({ title, onChevronClick, children }: PanelProps) {
   return (
-    <div className="bg-white border border-[#E2DED6] rounded-xl p-4 flex flex-col">
+    <div className="bg-white border border-[#E2DED6] rounded-xl p-4 flex flex-col overflow-hidden">
       <div className="flex items-center justify-between mb-3">
         <p className="text-sm font-semibold text-[#1A2A22]" style={{ fontFamily: 'Inter, sans-serif' }}>
           {title}
@@ -275,11 +275,11 @@ function NextActionsPanel({ programs, onNavigate }: { programs: MatchedProgramSu
   return (
     <>
       {actions.map((p, i) => {
-        const isLast = i === actions.length - 1 && programs.length >= 3;
+        const isLast = i === actions.length - 1;
         return (
           <PanelRow key={p.id} isLast={isLast}>
             <p
-              className="text-sm text-[#1A2A22] flex-1"
+              className="text-sm text-[#1A2A22] flex-1 min-w-0 line-clamp-2"
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
               {p.next_action}
