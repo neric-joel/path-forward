@@ -116,6 +116,19 @@ export default function HeroAscii({ onDemo }: HeroAsciiProps) {
           }}
         />
 
+        {/* Bottom fade into How It Works */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            bottom: 0, left: 0, right: 0,
+            height: 200,
+            background: 'linear-gradient(to bottom, transparent, #F5F2EC)',
+            zIndex: 2,
+            pointerEvents: 'none',
+          }}
+        />
+
         {/* Centered hero content */}
         <div
           style={{
@@ -255,8 +268,7 @@ export default function HeroAscii({ onDemo }: HeroAsciiProps) {
       <section
         id="how-it-works"
         style={{
-          background: '#F0EDE6',
-          borderTop: '1px solid #E2DED6',
+          background: '#F5F2EC',
           padding: '96px 28px',
         }}
       >
