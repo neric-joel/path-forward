@@ -214,24 +214,28 @@ export async function exportToPDF(
   // ────────────────────────────────────────────────────────────────────────────
   y = sectionHeader(doc, y, '1.  OVERVIEW & READINESS SCORES');
 
+  // Use a consistent left/right margin for the overview section so insight box + table align perfectly
+  const OL = 14; // overview left margin (same as MARGIN)
+  const OW = PAGE_W - OL * 2; // overview content width
+
   if (overview) {
     // Key insight
     if (overview.key_insight) {
       need(18);
       doc.setFillColor(...AMBER);
-      doc.roundedRect(MARGIN, y, CONTENT_W, 14, 2, 2, 'F');
+      doc.roundedRect(OL, y, OW, 14, 2, 2, 'F');
       doc.setFontSize(7);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(...WHITE);
-      doc.text('KEY INSIGHT', MARGIN + 4, y + 5);
+      doc.text('KEY INSIGHT', OL + 4, y + 5);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(7.5);
-      const lines = doc.splitTextToSize(overview.key_insight, CONTENT_W - 10);
-      doc.text(lines.slice(0, 2), MARGIN + 4, y + 10.5);
+      const lines = doc.splitTextToSize(overview.key_insight, OW - 10);
+      doc.text(lines.slice(0, 2), OL + 4, y + 10.5);
       y += 18;
     }
 
-    // Scores table via autoTable
+    // Scores table via autoTable — same margins as the insight box
     need(50);
     const scoreRows = [
       ['Overall Readiness', String(overview.readiness.overall), overview.readiness.overall_summary ?? ''],
@@ -246,13 +250,13 @@ export async function exportToPDF(
       head: [['Category', 'Score', 'Summary']],
       body: scoreRows,
       theme: 'grid',
-      margin: { left: MARGIN, right: MARGIN },
+      margin: { left: OL, right: OL },
       headStyles: { fillColor: TEAL, textColor: WHITE, fontStyle: 'bold', fontSize: 8 },
       bodyStyles: { fontSize: 7.5, textColor: DARK },
       columnStyles: {
         0: { cellWidth: 32, fontStyle: 'bold' },
         1: { cellWidth: 16, halign: 'center', fontStyle: 'bold', textColor: TEAL },
-        2: { cellWidth: CONTENT_W - 48 },
+        2: { cellWidth: OW - 48 },
       },
       didDrawCell: (data) => {
         if (data.column.index === 1 && data.section === 'body') {

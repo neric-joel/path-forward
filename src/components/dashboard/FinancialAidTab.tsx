@@ -2,8 +2,9 @@ import { useState } from 'react';
 import type { IntakeFormData, FinancialAidResult } from '../../lib/types';
 import { fetchFinancialAid } from '../../lib/claude';
 import { FinancialAidCards } from './FinancialAidCards';
-import { SectionIntro } from './SectionIntro';
-import { FundingSkeleton } from '../shared/Shimmer';
+import { TabLoader } from '../shared/TabLoader';
+import { TabQuestionScreen } from './TabQuestionScreen';
+import type { TabQuestion } from './TabQuestions';
 
 interface FinancialAidTabProps {
   intakeData: IntakeFormData;
@@ -11,9 +12,29 @@ interface FinancialAidTabProps {
   onLoaded: (r: FinancialAidResult) => void;
 }
 
+const FUNDING_QUESTIONS: TabQuestion[] = [
+  {
+    id: 'funding_priority',
+    label: 'What matters most to you?',
+    type: 'multiselect',
+    options: [
+      { value: 'tuition', label: 'Tuition coverage' },
+      { value: 'living', label: 'Living expenses' },
+      { value: 'books', label: 'Books & supplies' },
+      { value: 'housing', label: 'Housing' },
+      { value: 'all', label: 'All of the above' },
+    ],
+  },
+];
+
 export function FinancialAidTab({ intakeData, result, onLoaded }: FinancialAidTabProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
+  const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
+
+  const handleAnswerChange = (id: string, value: string | string[]) => {
+    setAnswers(prev => ({ ...prev, [id]: value }));
+  };
 
   const handleGenerate = () => {
     setIsLoading(true);
@@ -24,19 +45,19 @@ export function FinancialAidTab({ intakeData, result, onLoaded }: FinancialAidTa
       .finally(() => { setIsLoading(false); });
   };
 
-  if (isLoading) return <FundingSkeleton />;
+  if (isLoading) return <TabLoader message="Matching financial aid programs..." />;
 
   if (!result) {
     return (
-      <SectionIntro
-        icon="💰"
-        title="Your Funding Details"
-        description="See the full details of every program you qualify for — exact amounts, deadlines, who to contact, and what to do first."
-        ctaLabel="Show My Funding Details →"
-        note="Uses AI to generate personalized results based on your intake answers."
-        isLoading={isLoading}
-        isError={isError}
+      <TabQuestionScreen
+        title="Your Funding Match"
+        ctaLabel="Generate My Funding Match →"
         onGenerate={handleGenerate}
+        questions={FUNDING_QUESTIONS}
+        answers={answers}
+        onChange={handleAnswerChange}
+        isError={isError}
+        onRetry={handleGenerate}
       />
     );
   }

@@ -2,10 +2,9 @@ import { useState } from 'react';
 import type { IntakeFormData, SchoolMatchResult, SchoolPreferences } from '../../lib/types';
 import { fetchSchoolMatches } from '../../lib/claude';
 import { SchoolMatches } from './SchoolMatches';
-import { SectionIntro } from './SectionIntro';
-import { TabQuestions } from './TabQuestions';
+import { TabLoader } from '../shared/TabLoader';
+import { TabQuestionScreen } from './TabQuestionScreen';
 import type { TabQuestion } from './TabQuestions';
-import { SchoolsSkeleton } from '../shared/Shimmer';
 
 interface SchoolsTabProps {
   intakeData: IntakeFormData;
@@ -27,24 +26,25 @@ const SCHOOL_QUESTIONS: TabQuestion[] = [
   },
   {
     id: 'priorities',
-    label: 'What matters most to you in a school?',
+    label: "What's important in a school?",
     type: 'multiselect',
     options: [
       { value: 'low_cost', label: 'Low cost' },
-      { value: 'foster_support', label: 'Foster support program' },
-      { value: 'close_to_home', label: 'Close to where I live' },
-      { value: 'online_options', label: 'Online options' },
-      { value: 'four_year_degree', label: '4-year degree path' },
+      { value: 'online_options', label: 'Online classes' },
+      { value: 'foster_support', label: 'Foster youth support' },
+      { value: 'close_to_home', label: 'Close to home' },
+      { value: 'campus_life', label: 'Campus life' },
     ],
   },
   {
     id: 'transportation',
-    label: 'Do you have reliable transportation?',
+    label: 'How will you get around?',
     type: 'radio',
     options: [
-      { value: 'yes', label: 'Yes' },
-      { value: 'public_transit', label: 'Public transit only' },
-      { value: 'no', label: 'No' },
+      { value: 'own_car', label: 'Own car' },
+      { value: 'public_transit', label: 'Public transit' },
+      { value: 'walking_biking', label: 'Walking/biking' },
+      { value: 'fully_online', label: 'Fully online' },
     ],
   },
 ];
@@ -73,27 +73,20 @@ export function SchoolsTab({ intakeData, result, onLoaded }: SchoolsTabProps) {
       .finally(() => { setIsLoading(false); });
   };
 
-  if (isLoading) return <SchoolsSkeleton />;
+  if (isLoading) return <TabLoader message="Finding schools that fit..." />;
 
   if (!result) {
     return (
-      <div className="max-w-lg mx-auto mt-8 mb-4 px-4">
-        <TabQuestions
-          questions={SCHOOL_QUESTIONS}
-          answers={answers}
-          onChange={handleAnswerChange}
-        />
-        <SectionIntro
-          icon="🏫"
-          title="Your School Matches"
-          description="Find the best-fit Arizona schools for your situation — with full cost breakdowns showing exactly how your grants and waivers stack."
-          ctaLabel="Find My School Matches →"
-          note="All questions above are optional. Skip any you'd prefer not to answer."
-          isLoading={isLoading}
-          isError={isError}
-          onGenerate={handleGenerate}
-        />
-      </div>
+      <TabQuestionScreen
+        title="Your School Matches"
+        ctaLabel="Generate School Matches →"
+        onGenerate={handleGenerate}
+        questions={SCHOOL_QUESTIONS}
+        answers={answers}
+        onChange={handleAnswerChange}
+        isError={isError}
+        onRetry={handleGenerate}
+      />
     );
   }
 

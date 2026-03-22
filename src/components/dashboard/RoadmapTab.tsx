@@ -2,10 +2,9 @@ import { useState } from 'react';
 import type { IntakeFormData, SchoolMatchResult, RoadmapResult, RoadmapPreferences } from '../../lib/types';
 import { fetchRoadmap } from '../../lib/claude';
 import { SemesterRoadmap } from './SemesterRoadmap';
-import { SectionIntro } from './SectionIntro';
-import { TabQuestions } from './TabQuestions';
+import { TabLoader } from '../shared/TabLoader';
+import { TabQuestionScreen } from './TabQuestionScreen';
 import type { TabQuestion } from './TabQuestions';
-import { RoadmapSkeleton } from '../shared/Shimmer';
 
 interface RoadmapTabProps {
   intakeData: IntakeFormData;
@@ -14,10 +13,10 @@ interface RoadmapTabProps {
   onLoaded: (r: RoadmapResult) => void;
 }
 
-const FIT_LABEL_STYLES: Record<string, string> = {
-  'Strong match': 'bg-[#0F6E56]/10 text-[#0F6E56] border-[#0F6E56]/20',
-  'Good match': 'bg-[#BA7517]/10 text-[#BA7517] border-[#BA7517]/20',
-  'Worth exploring': 'bg-[#6B6A65]/10 text-[#5C6B63] border-[#6B6A65]/20',
+const FIT_LABEL_STYLES: Record<string, { border: string; bg: string; color: string }> = {
+  'Strong match': { border: 'rgba(15,110,86,0.2)', bg: 'rgba(15,110,86,0.08)', color: '#0F6E56' },
+  'Good match':   { border: 'rgba(186,117,23,0.2)', bg: 'rgba(186,117,23,0.08)', color: '#BA7517' },
+  'Worth exploring': { border: 'rgba(107,106,101,0.2)', bg: 'rgba(107,106,101,0.08)', color: '#5C6B63' },
 };
 
 const ROADMAP_QUESTIONS: TabQuestion[] = [
@@ -33,15 +32,19 @@ const ROADMAP_QUESTIONS: TabQuestion[] = [
   },
   {
     id: 'housing_preference',
-    label: 'Do you plan to live on campus or off campus?',
+    label: 'Where will you live?',
     type: 'radio',
     options: [
       { value: 'on_campus', label: 'On campus' },
-      { value: 'off_campus', label: 'Off campus' },
-      { value: 'not_sure', label: 'Not sure yet' },
+      { value: 'off_campus', label: 'Off campus nearby' },
+      { value: 'staying', label: 'Staying where I am' },
+      { value: 'not_sure', label: 'Not sure' },
     ],
   },
 ];
+
+const DISPLAY = "'Space Grotesk', sans-serif";
+const SANS = "'Inter', system-ui, sans-serif";
 
 export function RoadmapTab({ intakeData, result, schoolResult, onLoaded }: RoadmapTabProps) {
   const [isLoading, setIsLoading] = useState(false);
@@ -49,7 +52,6 @@ export function RoadmapTab({ intakeData, result, schoolResult, onLoaded }: Roadm
   const [selectedSchoolId, setSelectedSchoolId] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
 
-  // Auto-select top school when schoolResult first appears
   const effectiveSchoolId = selectedSchoolId ?? schoolResult?.school_matches?.[0]?.id ?? null;
 
   const handleAnswerChange = (id: string, value: string | string[]) => {
@@ -71,22 +73,29 @@ export function RoadmapTab({ intakeData, result, schoolResult, onLoaded }: Roadm
       .finally(() => { setIsLoading(false); });
   };
 
-  if (isLoading) return <RoadmapSkeleton />;
+  if (isLoading) return <TabLoader message="Creating your roadmap..." />;
 
   // Gate: no school matches yet
   if (!schoolResult) {
     return (
-      <SectionIntro
-        icon="🗓️"
-        title="Your Semester Roadmap"
-        description="See your full path to graduation — semester by semester, with tasks, costs, and funding mapped out for each phase."
-        ctaLabel="Map My Semesters →"
-        isLoading={false}
-        isError={false}
-        onGenerate={() => {}}
-        disabled
-        disabledReason="Generate your School Matches first — the roadmap is built around your chosen school."
-      />
+      <div style={{ maxWidth: 480, margin: '48px auto', padding: '0 24px', textAlign: 'center' }}>
+        <p style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: 20, color: '#1A2A22', marginBottom: 8 }}>
+          Your Semester Roadmap
+        </p>
+        <p style={{ fontFamily: SANS, fontSize: 14, color: '#5C6B63', marginBottom: 24 }}>
+          Generate your School Matches first — the roadmap is built around your chosen school.
+        </p>
+        <button
+          disabled
+          style={{
+            background: '#E2DED6', color: '#6B6A65', border: 'none',
+            borderRadius: 10, padding: '14px 24px', fontSize: 15,
+            fontWeight: 600, cursor: 'not-allowed', width: '100%',
+          }}
+        >
+          Map My Semesters →
+        </button>
+      </div>
     );
   }
 
@@ -96,7 +105,11 @@ export function RoadmapTab({ intakeData, result, schoolResult, onLoaded }: Roadm
       <div className="max-w-6xl mx-auto px-6 py-5">
         <button
           onClick={() => onLoaded(null as unknown as RoadmapResult)}
-          className="text-[13px] text-[#0F6E56] font-semibold hover:underline mb-6 flex items-center gap-1"
+          style={{
+            fontFamily: SANS, fontSize: 13, color: '#0F6E56', fontWeight: 600,
+            background: 'none', border: 'none', cursor: 'pointer',
+            marginBottom: 24, display: 'flex', alignItems: 'center', gap: 4,
+          }}
         >
           ← Try a different school
         </button>
@@ -105,102 +118,77 @@ export function RoadmapTab({ intakeData, result, schoolResult, onLoaded }: Roadm
     );
   }
 
-  // School picker + questions + CTA
   const selectedSchool = schoolResult.school_matches.find(s => s.id === effectiveSchoolId)
     ?? schoolResult.school_matches[0];
 
-  return (
-    <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
-      {/* School picker */}
-      <div>
-        <h2
-          className="text-2xl font-bold text-[#1A2A22] mb-1"
-          style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-        >
-          Choose Your School
-        </h2>
-        <p className="text-[15px] text-[#5C6B63] mb-4">
-          Select which school you'd like to build a roadmap for.
-        </p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {schoolResult.school_matches.map(school => {
-            const isSelected = school.id === effectiveSchoolId;
-            return (
-              <button
-                key={school.id}
-                type="button"
-                onClick={() => setSelectedSchoolId(school.id)}
-                className={`text-left rounded-2xl border-2 px-5 py-4 transition-all min-h-[44px]
-                  ${isSelected
-                    ? 'border-[#0F6E56] bg-[#0F6E56]/5 shadow-sm'
-                    : 'border-[#E2DED6] bg-white hover:border-[#0F6E56]/40'
-                  }`}
-              >
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 mt-0.5
-                    ${isSelected ? 'border-[#0F6E56] bg-[#0F6E56]' : 'border-[#E2DED6]'}`}
-                  >
-                    {isSelected && (
-                      <div className="w-full h-full rounded-full flex items-center justify-center">
-                        <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                      </div>
-                    )}
-                  </div>
-                  <span className={`text-[13px] font-semibold px-2.5 py-1 rounded-full border ${FIT_LABEL_STYLES[school.fit_label] ?? ''}`}>
-                    {school.fit_label}
-                  </span>
-                </div>
-                <p className="text-[15px] font-semibold text-[#1A2A22] leading-snug">{school.name}</p>
-                <p className="text-[13px] text-[#5C6B63] mt-0.5">
-                  {school.type === 'community_college' ? 'Community College' : 'University'}
-                </p>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Contextual questions */}
-      <TabQuestions
-        questions={ROADMAP_QUESTIONS}
-        answers={answers}
-        onChange={handleAnswerChange}
-      />
-
-      {/* CTA */}
-      <button
-        onClick={handleGenerate}
-        disabled={isLoading || !effectiveSchoolId}
-        className={`w-full flex items-center justify-center gap-2 py-4 rounded-2xl
-          font-semibold text-base transition-all min-h-[52px] shadow-md
-          ${isLoading
-            ? 'bg-[#E2DED6] text-[#5C6B63] cursor-not-allowed'
-            : 'bg-[#0F6E56] hover:bg-[#0a4f3e] text-white hover:shadow-lg'
-          }`}
-      >
-        {isLoading ? (
-          <>
-            <span className="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-            Building your roadmap…
-          </>
-        ) : (
-          `Build My Roadmap for ${selectedSchool?.name ?? 'this school'} →`
-        )}
-      </button>
-
-      {isError && (
-        <div className="px-4 py-3 rounded-xl bg-orange-50 border border-orange-200">
-          <p className="text-[13px] text-[#D85A30]">
-            Something went wrong — showing demo data instead.{' '}
-            <button onClick={handleGenerate} className="underline font-semibold">Try again</button>
-          </p>
-        </div>
-      )}
-
-      <p className="text-[13px] text-[#5C6B63] text-center">
-        All questions above are optional. Skip any you'd prefer not to answer.
+  // School picker as children passed into TabQuestionScreen
+  const schoolPicker = (
+    <div>
+      <p style={{ fontFamily: DISPLAY, fontWeight: 600, fontSize: 15, color: '#1A2A22', marginBottom: 10 }}>
+        Choose Your School
       </p>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        {schoolResult.school_matches.map(school => {
+          const isSelected = school.id === effectiveSchoolId;
+          const fitStyle = FIT_LABEL_STYLES[school.fit_label] ?? FIT_LABEL_STYLES['Worth exploring'];
+          return (
+            <button
+              key={school.id}
+              type="button"
+              onClick={() => setSelectedSchoolId(school.id)}
+              style={{
+                textAlign: 'left',
+                borderRadius: 16,
+                border: `2px solid ${isSelected ? '#0F6E56' : '#E2DED6'}`,
+                background: isSelected ? 'rgba(15,110,86,0.05)' : '#ffffff',
+                padding: '14px 16px',
+                cursor: 'pointer',
+                transition: 'border-color 0.15s',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                <div style={{
+                  width: 14, height: 14, borderRadius: '50%',
+                  border: `2px solid ${isSelected ? '#0F6E56' : '#E2DED6'}`,
+                  background: isSelected ? '#0F6E56' : 'transparent',
+                  flexShrink: 0, marginTop: 2,
+                }} />
+                <span style={{
+                  fontSize: 11, fontWeight: 600, fontFamily: SANS,
+                  padding: '2px 8px', borderRadius: 9999,
+                  border: `1px solid ${fitStyle.border}`,
+                  background: fitStyle.bg,
+                  color: fitStyle.color,
+                }}>
+                  {school.fit_label}
+                </span>
+              </div>
+              <p style={{ fontFamily: DISPLAY, fontWeight: 600, fontSize: 14, color: '#1A2A22', margin: 0, lineHeight: 1.3 }}>
+                {school.name}
+              </p>
+              <p style={{ fontFamily: SANS, fontSize: 12, color: '#5C6B63', margin: '2px 0 0' }}>
+                {school.type === 'community_college' ? 'Community College' : 'University'}
+              </p>
+            </button>
+          );
+        })}
+      </div>
     </div>
+  );
+
+  return (
+    <TabQuestionScreen
+      title="Your Semester Roadmap"
+      ctaLabel={`Build My Roadmap for ${selectedSchool?.name ?? 'this school'} →`}
+      onGenerate={handleGenerate}
+      questions={ROADMAP_QUESTIONS}
+      answers={answers}
+      onChange={handleAnswerChange}
+      isError={isError}
+      onRetry={handleGenerate}
+      disabled={!effectiveSchoolId}
+    >
+      {schoolPicker}
+    </TabQuestionScreen>
   );
 }

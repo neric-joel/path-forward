@@ -237,6 +237,8 @@ export function AnalyzingScreen() {
           fontSize: 11,
           color: '#5C6B63',
           letterSpacing: '0.05em',
+          textAlign: 'center',
+          width: '100%',
         }}
       >
         USUALLY TAKES 10–20 SECONDS

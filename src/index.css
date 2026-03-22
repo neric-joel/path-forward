@@ -281,6 +281,30 @@ body {
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ── Mini Loading Ring (120px — for tab content areas) ─────────────────── */
+
+.loading-ring-mini-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  width: 120px;
+  height: 120px;
+}
+
+.loading-ring-mini {
+  width: 120px;
+  height: 120px;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  position: absolute;
+}
+
+.loading-ring-mini:nth-child(1) { border-bottom: 5px solid #0F6E56; animation: rotate1 2s linear infinite; }
+.loading-ring-mini:nth-child(2) { border-bottom: 5px solid #BA7517; animation: rotate2 2s linear infinite; }
+.loading-ring-mini:nth-child(3) { border-bottom: 5px solid #3B6D11; animation: rotate3 2s linear infinite; }
+.loading-ring-mini:nth-child(4) { border-bottom: 5px solid #5C6B63; animation: rotate4 2s linear infinite; }
+
 /* Dither side-bar pattern (decorative, desktop only) */
 .dither-pattern {
   background-image:
