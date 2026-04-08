@@ -116,15 +116,27 @@ Dashboard → Score Updates (client-side) → PDF
 ---
 
 ## Run Locally
+
 ```bash
 git clone https://github.com/neric-joel/path-forward.git
 cd path-forward
 npm install
-echo "VITE_CLAUDE_API_KEY=your_key" > .env
+cp .env.example .env   # then edit .env and fill in your key (see below)
 npm run dev
 ```
 
-No API key? Full demo mode works out of the box.
+### Environment variables
+
+There are two separate keys depending on context:
+
+| Variable | Where | Purpose |
+|---|---|---|
+| `VITE_CLAUDE_API_KEY` | `.env` (local dev only) | Lets the browser call Anthropic directly, bypassing the proxy. **The key is visible in browser network requests** — use a dedicated dev/test key, never a production key. |
+| `CLAUDE_API_KEY` | Vercel dashboard → Environment Variables | Server-side key used by `api/assess.ts` in production. Never committed, never sent to the browser. |
+
+`.env` is listed in `.gitignore` and is never committed.
+
+**No API key?** If `VITE_CLAUDE_API_KEY` is absent or blank and you're not running `vercel dev`, API calls will fail gracefully and the app falls back to built-in demo data automatically.
 
 ---
 
