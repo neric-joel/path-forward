@@ -38,3 +38,4 @@ pathforward-implementation-plan.md
 # Claude skills reference repos (cloned, not submodules)
 .claude/community-skills/
 .claude/awesome-skills-ref/
+.claude/settings.local.json
